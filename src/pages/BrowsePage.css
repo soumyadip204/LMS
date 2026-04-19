@@ -1,0 +1,126 @@
+.browse-page {
+  padding-top: var(--navbar-height);
+  min-height: 100vh;
+}
+
+.browse-header {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 50px 0 40px;
+  text-align: center;
+}
+
+.browse-title {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.browse-subtitle {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin-bottom: 28px;
+}
+
+.browse-search {
+  display: flex;
+  align-items: center;
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 5px;
+  transition: border-color var(--transition-fast);
+}
+
+.browse-search:focus-within {
+  border-color: var(--accent-primary);
+}
+
+.browse-search-icon {
+  padding: 0 12px;
+  color: var(--text-muted);
+}
+
+.browse-search-input {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  padding: 10px 0;
+}
+
+.browse-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.browse-content {
+  padding: 32px 24px;
+}
+
+.browse-filters {
+  margin-bottom: 32px;
+}
+
+.filter-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.filter-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-tag {
+  padding: 8px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.filter-tag:hover {
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
+}
+
+.filter-tag.active {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: white;
+}
+
+.browse-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 40px;
+}
+
+.pagination-info {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .browse-title { font-size: 1.8rem; }
+  .browse-search { flex-direction: column; padding: 8px; }
+  .browse-search-input { width: 100%; padding: 10px 12px; }
+  .browse-search-icon { display: none; }
+  .browse-search .btn { width: 100%; }
+}

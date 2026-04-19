@@ -1,0 +1,200 @@
+/* Instructor-specific styles */
+.instructor-courses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.instructor-course-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+}
+
+.instructor-course-card:hover {
+  transform: none;
+}
+
+.icc-thumb {
+  width: 140px;
+  height: 80px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--bg-tertiary);
+}
+
+.icc-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.icc-thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.icc-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.icc-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.icc-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  transition: color var(--transition-fast);
+}
+
+.icc-title:hover {
+  color: var(--accent-primary);
+}
+
+.icc-category {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.icc-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.icc-stats span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.icc-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.icc-action-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.icc-action-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-color-hover);
+}
+
+.icc-action-btn.icc-delete:hover {
+  color: var(--error);
+  border-color: var(--error);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* Lectures in modal */
+.lectures-section {
+  margin-bottom: 20px;
+}
+
+.lectures-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.lectures-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.lecture-form-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+}
+
+.lecture-order {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-top: 8px;
+}
+
+.lecture-fields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lecture-fields .form-input {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+}
+
+.lecture-duration {
+  max-width: 150px;
+}
+
+.lecture-remove {
+  background: none;
+  color: var(--text-muted);
+  padding: 8px;
+  flex-shrink: 0;
+}
+
+.lecture-remove:hover {
+  color: var(--error);
+}
+
+@media (max-width: 768px) {
+  .instructor-course-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .icc-thumb {
+    width: 100%;
+    height: 160px;
+  }
+
+  .icc-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

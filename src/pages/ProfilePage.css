@@ -1,0 +1,117 @@
+.profile-page {
+  padding-top: calc(var(--navbar-height) + 40px);
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+
+.profile-card {
+  max-width: 700px;
+  margin: 0 auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.profile-banner {
+  height: 140px;
+  background: var(--accent-gradient);
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-banner-pattern {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+.profile-main {
+  padding: 0 32px 32px;
+  position: relative;
+}
+
+.profile-avatar-wrapper {
+  margin-top: -40px;
+  margin-bottom: 20px;
+}
+
+.profile-avatar-lg {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--accent-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  border: 4px solid var(--bg-card);
+  box-shadow: var(--shadow-md);
+}
+
+.profile-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.profile-name {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.profile-bio {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.profile-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+.profile-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.profile-detail-item svg {
+  color: var(--text-muted);
+}
+
+.profile-edit-form {
+  margin-bottom: 20px;
+}
+
+.profile-edit-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.profile-info-section {
+  margin-bottom: 8px;
+}
+
+@media (max-width: 480px) {
+  .profile-main { padding: 0 20px 24px; }
+  .profile-name { font-size: 1.3rem; }
+  .profile-name-row { flex-direction: column; align-items: flex-start; }
+}

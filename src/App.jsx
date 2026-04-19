@@ -1,0 +1,100 @@
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+import { AuthProvider } from './context/AuthContext';
+import { CourseProvider } from './context/CourseContext';
+
+import Navbar from './components/common/Navbar';
+import Footer from './components/common/Footer';
+import ProtectedRoute from './components/common/ProtectedRoute';
+import RoleRoute from './components/common/RoleRoute';
+
+import HomePage from './pages/HomePage';
+import BrowsePage from './pages/BrowsePage';
+import CourseDetailPage from './pages/CourseDetailPage';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import LearnerDashboard from './pages/LearnerDashboard';
+import InstructorDashboard from './pages/InstructorDashboard';
+import AdminDashboard from './pages/AdminDashboard';
+import ProfilePage from './pages/ProfilePage';
+
+function App() {
+  return (
+    <Router>
+      <AuthProvider>
+        <CourseProvider>
+          <div className="app">
+            <Navbar />
+            <main className="main-content">
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<HomePage />} />
+                <Route path="/browse" element={<BrowsePage />} />
+                <Route path="/course/:id" element={<CourseDetailPage />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+
+                {/* Learner Routes */}
+                <Route
+                  path="/dashboard"
+                  element={
+                    <RoleRoute roles={['learner']}>
+                      <LearnerDashboard />
+                    </RoleRoute>
+                  }
+                />
+
+                {/* Instructor Routes */}
+                <Route
+                  path="/instructor"
+                  element={
+                    <RoleRoute roles={['instructor']}>
+                      <InstructorDashboard />
+                    </RoleRoute>
+                  }
+                />
+
+                {/* Admin Routes */}
+                <Route
+                  path="/admin"
+                  element={
+                    <RoleRoute roles={['admin']}>
+                      <AdminDashboard />
+                    </RoleRoute>
+                  }
+                />
+
+                {/* Profile (all authenticated users) */}
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <ProfilePage />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </main>
+            <Footer />
+            <ToastContainer
+              position="bottom-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              newestOnTop
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="dark"
+            />
+          </div>
+        </CourseProvider>
+      </AuthProvider>
+    </Router>
+  );
+}
+
+export default App;
