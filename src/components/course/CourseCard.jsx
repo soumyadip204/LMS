@@ -6,9 +6,15 @@ import './CourseCard.css';
 const CourseCard = ({ course }) => {
   const thumbnail =
     course.thumbnail ||
-    (course.lectures?.length > 0
-      ? getYouTubeThumbnail(course.lectures[0].youtubeUrl)
-      : null);
+    (() => {
+      // Find the first video item to pull its youtube thumbnail
+      for (const module of course.modules || []) {
+        for (const item of module.items || []) {
+          if (item.type === 'video' && item.url) return getYouTubeThumbnail(item.url);
+        }
+      }
+      return null;
+    })();
 
   return (
     <Link to={`/course/${course._id}`} className="course-card card">
@@ -23,9 +29,9 @@ const CourseCard = ({ course }) => {
         <div className="course-card-overlay">
           <span className="badge badge-primary">{course.category}</span>
         </div>
-        {course.lectures && (
+        {course.modules && (
           <span className="course-card-lectures-count">
-            <FiPlay size={12} /> {course.lectures.length} lectures
+            <FiPlay size={12} /> {course.modules.length} modules
           </span>
         )}
       </div>

@@ -1,303 +1,528 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import {
-  FiPlay, FiUsers, FiClock, FiStar, FiBookOpen,
-  FiArrowLeft, FiCheck, FiX, FiSend, FiExternalLink
-} from 'react-icons/fi';
-import { useCourses } from '../context/CourseContext';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { formatDate, getYouTubeId } from '../utils/helpers';
-import Loader from '../components/common/Loader';
+import { useCourses } from '../context/CourseContext';
+import { getYouTubeId } from '../utils/helpers';
 import API from '../utils/api';
+import Loader from '../components/common/Loader';
+import { 
+  FiPlayCircle, FiCheckCircle, FiStar, FiClock, FiUsers, 
+  FiBookOpen, FiChevronDown, FiChevronUp, FiVideo, FiFileText, 
+  FiEdit3, FiHelpCircle, FiLock, FiExternalLink
+} from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import './CourseDetailPage.css';
 
 const CourseDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { currentCourse, fetchCourse, enrollInCourse, unenrollFromCourse, loading } = useCourses();
   const { user, isAuthenticated } = useAuth();
-  const [activeLecture, setActiveLecture] = useState(null);
-  const [reviews, setReviews] = useState([]);
-  const [reviewText, setReviewText] = useState('');
-  const [reviewRating, setReviewRating] = useState(5);
-  const [submittingReview, setSubmittingReview] = useState(false);
+  const { currentCourse, fetchCourse, enrollInCourse, submitAssignment, submitQuiz, fetchMySubmissions } = useCourses();
+  
+  const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
+  
+  const [activeModuleIndex, setActiveModuleIndex] = useState(0);
+  const [activeItem, setActiveItem] = useState(null);
+  
+  const [expandedModules, setExpandedModules] = useState({ 0: true });
+  
+  // Submissions State
+  const [mySubmissions, setMySubmissions] = useState({ assignments: [], quizzes: [] });
+  
+  // Specific UI States for interactive items
+  const [assignmentUrl, setAssignmentUrl] = useState('');
+  const [assignmentText, setAssignmentText] = useState('');
+  
+  const [quizState, setQuizState] = useState({ started: false, answers: [] });
 
-  const course = currentCourse;
-  const isEnrolled = course?.enrolledStudents?.some((s) => s._id === user?._id || s === user?._id);
-  const isOwner = course?.instructor?._id === user?._id;
+  const isEnrolled = isAuthenticated && currentCourse?.enrolledStudents?.some(s => 
+    (typeof s === 'string' ? s : s._id) === user?._id
+  );
+  const isInstructor = isAuthenticated && currentCourse?.instructor?._id === user?._id;
+  const canAccessContent = isEnrolled || isInstructor || user?.role === 'admin';
 
   useEffect(() => {
-    fetchCourse(id);
-    fetchReviews();
-  }, [id]);
+    loadCourseData();
+  }, [id, isAuthenticated]);
 
-  useEffect(() => {
-    if (course?.lectures?.length > 0 && !activeLecture) {
-      setActiveLecture(course.lectures[0]);
-    }
-  }, [course]);
-
-  const fetchReviews = async () => {
+  const loadCourseData = async () => {
+    setLoading(true);
     try {
-      const res = await API.get(`/reviews/course/${id}`);
-      setReviews(res.data.reviews);
+      const course = await fetchCourse(id);
+      if (course?.modules?.length > 0) {
+        if (course.modules[0].items?.length > 0) {
+          setActiveItem(course.modules[0].items[0]);
+        }
+      }
+      
+      if (canAccessContent) {
+        loadSubmissions();
+      }
     } catch (err) {
-      console.error(err);
+      toast.error('Failed to load course details');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const loadSubmissions = async () => {
+    const subs = await fetchMySubmissions(id);
+    setMySubmissions(subs);
   };
 
   const handleEnroll = async () => {
-    if (!isAuthenticated) {
-      toast.info('Please login to enroll');
-      navigate('/login');
-      return;
-    }
+    if (!isAuthenticated) return navigate('/login');
     setEnrolling(true);
     try {
       await enrollInCourse(id);
-      toast.success('Enrolled successfully!');
-      fetchCourse(id);
+      toast.success('Successfully enrolled!');
+      fetchCourse(id); // refresh
+      loadSubmissions();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Enrollment failed');
+    } finally {
+      setEnrolling(false);
     }
-    setEnrolling(false);
   };
 
-  const handleUnenroll = async () => {
-    setEnrolling(true);
+  const handleItemClick = (modIndex, item) => {
+    if (!canAccessContent) return;
+    setActiveModuleIndex(modIndex);
+    setActiveItem(item);
+    
+    // Reset specific states
+    setQuizState({ started: false, answers: [] });
+    // Pre-fill assignment if existing
+    if (item.type === 'assignment') {
+      const existingSub = mySubmissions.assignments.find(a => a.assignmentId === item._id);
+      if (existingSub) {
+        setAssignmentUrl(existingSub.submissionUrl);
+        setAssignmentText(existingSub.submissionText);
+      } else {
+        setAssignmentUrl('');
+        setAssignmentText('');
+      }
+    }
+  };
+
+  const toggleModule = (index) => {
+    setExpandedModules(p => ({ ...p, [index]: !p[index] }));
+  };
+
+  // ASSIGNMENT HANDLING
+  const handleAssignmentSubmit = async () => {
+    if (!assignmentUrl && !assignmentText) {
+      return toast.error("Please provide either a URL or text approach");
+    }
+    const btn = document.activeElement;
+    if (btn) btn.disabled = true;
     try {
-      await unenrollFromCourse(id);
-      toast.success('Unenrolled successfully');
-      fetchCourse(id);
+      await submitAssignment(id, activeItem._id, { submissionUrl: assignmentUrl, submissionText: assignmentText });
+      toast.success("Assignment submitted successfully!");
+      loadSubmissions();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to unenroll');
+      toast.error('Failed to submit assignment');
+    } finally {
+      if (btn) btn.disabled = false;
     }
-    setEnrolling(false);
   };
 
-  const handleReviewSubmit = async (e) => {
-    e.preventDefault();
-    setSubmittingReview(true);
-    try {
-      await API.post(`/reviews/course/${id}`, {
-        rating: reviewRating,
-        comment: reviewText,
+  // QUIZ HANDLING
+  const startQuiz = () => {
+    setQuizState({
+      started: true,
+      answers: activeItem.questions.map(q => ({ questionId: q._id, selectedOptionIds: [] }))
+    });
+  };
+
+  const toggleQuizOption = (qId, type, optId) => {
+    setQuizState(prev => {
+      const newAnswers = prev.answers.map(ans => {
+        if (ans.questionId === qId) {
+          if (type === 'single') {
+            return { ...ans, selectedOptionIds: [optId] };
+          } else {
+            const hasOption = ans.selectedOptionIds.includes(optId);
+            return {
+              ...ans,
+              selectedOptionIds: hasOption 
+                ? ans.selectedOptionIds.filter(id => id !== optId) 
+                : [...ans.selectedOptionIds, optId]
+            };
+          }
+        }
+        return ans;
       });
-      toast.success('Review added!');
-      setReviewText('');
-      setReviewRating(5);
-      fetchReviews();
-      fetchCourse(id);
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to add review');
-    }
-    setSubmittingReview(false);
+      return { ...prev, answers: newAnswers };
+    });
   };
 
-  if (loading || !course) return <Loader text="Loading course..." />;
+  const handleQuizSubmit = async () => {
+    const btn = document.activeElement;
+    if (btn) btn.disabled = true;
+    try {
+      await submitQuiz(id, activeItem._id, quizState.answers);
+      toast.success("Quiz submitted!");
+      loadSubmissions();
+    } catch (err) {
+      toast.error('Failed to submit quiz');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  };
 
-  const videoId = activeLecture ? getYouTubeId(activeLecture.youtubeUrl) : null;
+  if (loading) return <Loader text="Loading course details..." />;
+  if (!currentCourse) return <div className="container mt-5 text-center"><h2>Course not found</h2></div>;
+
+  const totalReviews = currentCourse.totalReviews || 0;
+  const rating = currentCourse.averageRating || 0;
+  
+  // Computed helpers for rendering
+  const getItemIcon = (type) => {
+    switch(type) {
+      case 'video': return <FiVideo className="item-icon-small" />;
+      case 'documentation': return <FiFileText className="item-icon-small text-info" />;
+      case 'assignment': return <FiEdit3 className="item-icon-small text-primary" />;
+      case 'quiz': return <FiHelpCircle className="item-icon-small text-warning" />;
+      default: return null;
+    }
+  };
+
+  const isItemCompleted = (item) => {
+    if (item.type === 'assignment') return mySubmissions.assignments.some(a => a.assignmentId === item._id);
+    if (item.type === 'quiz') return mySubmissions.quizzes.some(q => q.quizId === item._id);
+    return false; // Video/Doc progress tracking not implemented
+  };
+
+  // Main UI Renders
+  const renderVideoPlayer = () => {
+    const videoId = getYouTubeId(activeItem.url);
+    if (!videoId) return <div className="video-error">Invalid video URL provided.</div>;
+    return (
+      <div className="cd-video-wrapper">
+        <iframe
+          className="cd-video-iframe"
+          title={activeItem.title}
+          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        ></iframe>
+      </div>
+    );
+  };
+
+  const renderDocumentation = () => {
+    return (
+      <div className="cd-doc-viewer">
+        <FiFileText size={64} className="text-info mb-4" />
+        <h2 className="mb-4">{activeItem.title}</h2>
+        <a href={activeItem.url} target="_blank" rel="noreferrer" className="btn btn-primary">
+          Open Document <FiExternalLink className="ml-2" />
+        </a>
+      </div>
+    );
+  };
+
+  const renderAssignmentUI = () => {
+    const existingSub = mySubmissions.assignments.find(a => a.assignmentId === activeItem._id);
+
+    return (
+      <div className="cd-interactive-panel">
+        <div className="panel-header">
+          <h2>{activeItem.title} <span className="badge badge-primary ml-3">{activeItem.maxScore} pts</span></h2>
+          <span className="metadata-badge"><FiClock/> {activeItem.time || 'No time limit'}</span>
+          <span className="metadata-badge text-warning"><FiStar/> Passing: {activeItem.passingScore}</span>
+        </div>
+        
+        <div className="panel-desc mt-4">
+          <p>{activeItem.description}</p>
+          {activeItem.attachmentUrl && (
+            <a href={activeItem.attachmentUrl} target="_blank" rel="noreferrer" className="attachment-link mt-3 block">
+              <FiExternalLink/> Instructions Material
+            </a>
+          )}
+        </div>
+
+        <div className="panel-action mt-5">
+          <h3 className="mb-4">Your Submission {existingSub && <span className="badge badge-success ml-2"><FiCheckCircle/> Submitted</span>}</h3>
+          
+          <div className="form-group">
+            <label className="form-label">Submission URL (e.g., GitHub, Drive Link)</label>
+            <input className="form-input" placeholder="https://" value={assignmentUrl} onChange={e => setAssignmentUrl(e.target.value)} />
+          </div>
+          
+          <div className="form-group">
+            <label className="form-label">Submission Text / Notes</label>
+            <textarea className="form-textarea" placeholder="Provide extra code snippet or context here..." rows="4" value={assignmentText} onChange={e => setAssignmentText(e.target.value)}></textarea>
+          </div>
+          
+          <button className="btn btn-primary" onClick={handleAssignmentSubmit}>
+            {existingSub ? 'Update Submission' : 'Submit Assignment'}
+          </button>
+          
+          {existingSub?.score !== null && existingSub?.score !== undefined && (
+            <div className="grade-box mt-4">
+              <strong>Graded Score:</strong> {existingSub.score} / {activeItem.maxScore}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderQuizUI = () => {
+    const existingSub = mySubmissions.quizzes.find(q => q.quizId === activeItem._id);
+    
+    // View Results State
+    if (existingSub && !quizState.started) {
+      return (
+        <div className="cd-interactive-panel">
+          <div className="panel-header mb-4 text-center">
+            <h2>{activeItem.title} - Results</h2>
+            <div className={`quiz-result-large ${existingSub.passed ? 'text-success' : 'text-error'} mt-3`}>
+              {existingSub.passed ? 'PASSED' : 'FAILED'} ({existingSub.score} / {activeItem.maxScore})
+            </div>
+          </div>
+          
+          <div className="quiz-review">
+            {activeItem.questions.map((q, qIndex) => {
+              const studentAnswer = existingSub.answers.find(ans => ans.questionId === q._id);
+              const selectedIds = studentAnswer ? studentAnswer.selectedOptionIds : [];
+              return (
+                <div key={q._id} className="quiz-result-qcard pb-4 mb-4" style={{borderBottom: '1px solid var(--border-color)'}}>
+                  <p className="font-weight-600 mb-3">{qIndex + 1}. {q.questionText} <span className="text-muted ml-2">({q.score} pts)</span></p>
+                  
+                  <div className="result-options">
+                    {q.options.map((opt) => {
+                      const isSelected = selectedIds.includes(opt._id);
+                      let optClass = "res-opt ";
+                      if (opt.isCorrect) optClass += "correct-opt ";
+                      if (isSelected && !opt.isCorrect) optClass += "wrong-opt ";
+                      
+                      return (
+                        <div key={opt._id} className={`p-2 rounded mb-2 ${optClass}`} style={{
+                          background: opt.isCorrect ? 'rgba(16,185,129,0.1)' : (isSelected ? 'rgba(239,68,68,0.1)' : 'var(--bg-tertiary)'),
+                          border: `1px solid ${opt.isCorrect ? 'var(--success)' : (isSelected ? 'var(--error)' : 'transparent')}`
+                        }}>
+                          {isSelected && <FiCheckCircle className="mr-2"/>} {opt.text}
+                        </div>
+                      )
+                    })}
+                  </div>
+                  {q.explanation && (
+                    <div className="explanation-box mt-3 p-3 rounded" style={{background: 'rgba(56,189,248,0.1)', borderLeft: '4px solid var(--info)'}}>
+                      <strong>Explanation:</strong> {q.explanation}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          
+          <button className="btn btn-secondary mt-5 mx-auto block" onClick={startQuiz}>Retake Quiz</button>
+        </div>
+      );
+    }
+
+    // Attempting state
+    if (quizState.started) {
+      return (
+        <div className="cd-interactive-panel">
+          <div className="panel-header mb-4 border-b pb-4">
+            <h2>{activeItem.title}</h2>
+            <div className="metadata-badge text-warning"><FiClock/> {activeItem.time || 'No time limit'}</div>
+          </div>
+          
+          <div className="quiz-take-flow">
+            {activeItem.questions.map((q, i) => (
+              <div key={q._id} className="quiz-take-qcard mb-5">
+                <p className="qcard-title font-weight-600 mb-4">{i + 1}. {q.questionText} <span className="text-muted text-sm ml-2">({q.type === 'single' ? 'Pick 1' : 'Pick multiple'})</span></p>
+                <div className="qcard-options pl-2 border-l border-border-color">
+                  {q.options.map(opt => {
+                    const myAns = quizState.answers.find(a => a.questionId === q._id);
+                    const isChecked = myAns?.selectedOptionIds.includes(opt._id);
+                    return (
+                      <label key={opt._id} className="option-label" style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', cursor: 'pointer'}}>
+                        <input 
+                          type={q.type === 'single' ? 'radio' : 'checkbox'} 
+                          name={`quest_${q._id}`}
+                          checked={isChecked}
+                          onChange={() => toggleQuizOption(q._id, q.type, opt._id)}
+                          style={{width: '18px', height: '18px', accentColor: 'var(--primary-color)'}}
+                        />
+                        <span style={{color: isChecked ? 'var(--text-primary)' : 'var(--text-secondary)'}}>{opt.text}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+            <button className="btn btn-primary float-right" onClick={handleQuizSubmit}>Finish & Submit Quiz</button>
+          </div>
+        </div>
+      );
+    }
+
+    // Intro state
+    return (
+      <div className="cd-interactive-panel text-center">
+        <FiHelpCircle size={64} className="text-warning mb-4" />
+        <h2 className="mb-4">{activeItem.title}</h2>
+        <div className="quiz-meta-row mb-5" style={{display: 'flex', justifyContent: 'center', gap: '20px'}}>
+          <span><FiBookOpen className="mr-2"/> {activeItem.questions?.length} Questions</span>
+          <span><FiStar className="mr-2"/> Passing Score: {activeItem.passingScore}/{activeItem.maxScore}</span>
+        </div>
+        <button className="btn btn-primary btn-lg" onClick={startQuiz}>Start Quiz</button>
+      </div>
+    );
+  };
 
   return (
     <div className="course-detail-page page-enter">
-      {/* Course Header */}
-      <div className="cd-header">
-        <div className="container">
-          <button onClick={() => navigate(-1)} className="cd-back-btn">
-            <FiArrowLeft /> Back
-          </button>
-          <div className="cd-header-content">
-            <div className="cd-header-info">
-              <span className="badge badge-primary">{course.category}</span>
-              <h1 className="cd-title">{course.title}</h1>
-              <p className="cd-desc">{course.description}</p>
-
-              <div className="cd-meta">
-                <div className="cd-meta-item">
-                  <FiStar className="cd-meta-icon star" />
-                  <span>{course.averageRating?.toFixed(1) || 'New'} ({course.totalReviews || 0} reviews)</span>
-                </div>
-                <div className="cd-meta-item">
-                  <FiUsers className="cd-meta-icon" />
-                  <span>{course.enrollmentCount || 0} students</span>
-                </div>
-                <div className="cd-meta-item">
-                  <FiPlay className="cd-meta-icon" />
-                  <span>{course.lectures?.length || 0} lectures</span>
-                </div>
-                <div className="cd-meta-item">
-                  <FiClock className="cd-meta-icon" />
-                  <span>Updated {formatDate(course.updatedAt)}</span>
-                </div>
+      {/* HEADER SECTION */}
+      <div className="cd-hero">
+        <div className="container cd-hero-inner">
+          <div className="cd-hero-content">
+            <span className="badge badge-warning mb-3">{currentCourse.category}</span>
+            <h1 className="cd-title">{currentCourse.title}</h1>
+            <p className="cd-desc">{currentCourse.description}</p>
+            
+            <div className="cd-meta-group">
+              <div className="cd-meta-item cd-instructor-badge">
+                <div className="cd-avatar">{currentCourse.instructor?.name?.[0]?.toUpperCase()}</div>
+                <span>{currentCourse.instructor?.name}</span>
               </div>
-
-              <div className="cd-instructor">
-                <div className="cd-instructor-avatar">
-                  {course.instructor?.name?.[0]?.toUpperCase()}
-                </div>
-                <div>
-                  <p className="cd-instructor-label">Instructor</p>
-                  <p className="cd-instructor-name">{course.instructor?.name}</p>
-                </div>
+              <div className="cd-meta-item">
+                <FiStar className="text-warning" />
+                <span>{rating.toFixed(1)} ({totalReviews} reviews)</span>
               </div>
-
-              {!isOwner && (
-                <div className="cd-actions">
-                  {isEnrolled ? (
-                    <button onClick={handleUnenroll} className="btn btn-secondary" disabled={enrolling}>
-                      <FiX /> Unenroll
-                    </button>
-                  ) : (
-                    <button onClick={handleEnroll} className="btn btn-primary btn-lg" disabled={enrolling}>
-                      {enrolling ? 'Enrolling...' : (<><FiBookOpen /> Enroll for Free</>)}
-                    </button>
-                  )}
-                </div>
-              )}
+              <div className="cd-meta-item">
+                <FiUsers />
+                <span>{currentCourse.enrollmentCount || 0} students enrolled</span>
+              </div>
             </div>
+          </div>
+          
+          <div className="cd-hero-action">
+            {canAccessContent ? (
+              <div className="cd-enrolled-notice">
+                <FiCheckCircle size={24} className="text-success mb-2" />
+                <h3>You are {isInstructor ? 'the instructor' : 'enrolled'}</h3>
+                <p>Scroll down to browse the curriculum modules.</p>
+              </div>
+            ) : (
+              <div className="cd-enroll-box card">
+                <div className="enroll-price">Free</div>
+                <button className="btn btn-primary btn-block btn-lg" onClick={handleEnroll} disabled={enrolling}>
+                  {enrolling ? 'Enrolling...' : 'Enroll Now'}
+                </button>
+                <ul className="enroll-perks">
+                  <li><FiVideo /> Rich module content</li>
+                  <li><FiFileText /> Assigments & Quizzes</li>
+                  <li><FiClock /> Certificate of completion</li>
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Video Player & Lectures */}
-      <div className="container cd-body">
-        <div className="cd-main">
-          {/* Video Player */}
-          {activeLecture && videoId ? (
-            <div className="cd-player-wrapper">
-              <div className="cd-player">
-                <iframe
-                  src={`https://www.youtube.com/embed/${videoId}?rel=0`}
-                  title={activeLecture.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="cd-iframe"
-                />
-              </div>
-              <div className="cd-player-info">
-                <h3>{activeLecture.title}</h3>
-                {activeLecture.duration && <span className="cd-duration">{activeLecture.duration}</span>}
-                <a
-                  href={activeLecture.youtubeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-secondary btn-sm cd-yt-link"
-                >
-                  <FiExternalLink /> Watch on YouTube
-                </a>
+      <div className="container cd-main">
+        {canAccessContent ? (
+          <div className="cd-learning-layout">
+            <div className="cd-sidebar">
+              <h3 className="cd-sidebar-title">Course Modules</h3>
+              <div className="cd-module-list">
+                {currentCourse.modules?.length > 0 ? (
+                  currentCourse.modules.map((module, modIndex) => (
+                    <div key={module._id || modIndex} className="cd-module-accordion">
+                      <div className="cd-module-header" onClick={() => toggleModule(modIndex)}>
+                        <div className="mod-title">
+                          <span className="mod-num">Module {modIndex + 1}</span>
+                          <h4>{module.title}</h4>
+                        </div>
+                        {expandedModules[modIndex] ? <FiChevronUp/> : <FiChevronDown/>}
+                      </div>
+                      
+                      {expandedModules[modIndex] && (
+                        <div className="cd-module-items">
+                          {module.items?.map((item) => {
+                            let itemCompleted = isItemCompleted(item);
+
+                            return (
+                              <button 
+                                key={item._id} 
+                                className={`cd-item-btn ${activeItem?._id === item._id ? 'active' : ''} ${itemCompleted ? 'completed' : ''}`}
+                                onClick={() => handleItemClick(modIndex, item)}
+                              >
+                                <div className="item-icon-col">
+                                  {itemCompleted ? <FiCheckCircle className="text-success"/> : getItemIcon(item.type)}
+                                </div>
+                                <div className="item-info-col">
+                                  <span className="item-title">{item.title}</span>
+                                  {item.duration && <span className="item-dur"><FiClock/> {item.duration}</span>}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-muted p-4 text-center">No modules available</p>
+                )}
               </div>
             </div>
-          ) : (
-            <div className="cd-no-video">
-              <FiPlay size={48} />
-              <p>Select a lecture to start watching</p>
-            </div>
-          )}
 
-          {/* Reviews Section */}
-          <div className="cd-reviews">
-            <h3 className="cd-section-title">Reviews ({reviews.length})</h3>
-
-            {isEnrolled && user?.role === 'learner' && (
-              <form className="cd-review-form" onSubmit={handleReviewSubmit}>
-                <div className="cd-rating-select">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      className={`cd-star-btn ${star <= reviewRating ? 'active' : ''}`}
-                      onClick={() => setReviewRating(star)}
-                    >
-                      <FiStar />
-                    </button>
-                  ))}
+            <div className="cd-content-area card">
+              {activeItem ? (
+                <>
+                  {activeItem.type === 'video' && renderVideoPlayer()}
+                  {activeItem.type === 'documentation' && renderDocumentation()}
+                  {activeItem.type === 'assignment' && renderAssignmentUI()}
+                  {activeItem.type === 'quiz' && renderQuizUI()}
+                </>
+              ) : (
+                <div className="content-placeholder">
+                  <FiPlayCircle size={64} className="text-muted mb-4" />
+                  <h3>Welcome exactly to the course!</h3>
+                  <p>Select an item from the modules list to begin.</p>
                 </div>
-                <div className="cd-review-input-row">
-                  <input
-                    type="text"
-                    placeholder="Write a review..."
-                    value={reviewText}
-                    onChange={(e) => setReviewText(e.target.value)}
-                    className="form-input"
-                  />
-                  <button type="submit" className="btn btn-primary" disabled={submittingReview}>
-                    <FiSend />
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {reviews.length > 0 ? (
-              <div className="cd-reviews-list">
-                {reviews.map((review) => (
-                  <div key={review._id} className="cd-review-item">
-                    <div className="cd-review-header">
-                      <div className="cd-review-user">
-                        <div className="cd-review-avatar">
-                          {review.user?.name?.[0]?.toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="cd-review-name">{review.user?.name}</p>
-                          <p className="cd-review-date">{formatDate(review.createdAt)}</p>
-                        </div>
-                      </div>
-                      <div className="cd-review-stars">
-                        {[...Array(5)].map((_, i) => (
-                          <FiStar key={i} className={i < review.rating ? 'star-filled' : 'star-empty'} size={14} />
-                        ))}
-                      </div>
-                    </div>
-                    {review.comment && <p className="cd-review-comment">{review.comment}</p>}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="cd-no-reviews">No reviews yet. Be the first to review!</p>
-            )}
-          </div>
-        </div>
-
-        {/* Lectures Sidebar */}
-        <div className="cd-sidebar">
-          <div className="cd-lectures-panel">
-            <h3 className="cd-lectures-title">
-              <FiBookOpen /> Course Content
-            </h3>
-            <p className="cd-lectures-count">{course.lectures?.length || 0} lectures</p>
-
-            <div className="cd-lectures-list">
-              {course.lectures
-                ?.sort((a, b) => a.order - b.order)
-                .map((lecture, index) => (
-                  <button
-                    key={lecture._id || index}
-                    className={`cd-lecture-item ${activeLecture?._id === lecture._id || activeLecture?.order === lecture.order ? 'active' : ''}`}
-                    onClick={() => setActiveLecture(lecture)}
-                  >
-                    <span className="cd-lecture-number">{index + 1}</span>
-                    <div className="cd-lecture-info">
-                      <p className="cd-lecture-name">{lecture.title}</p>
-                      {lecture.duration && <span className="cd-lecture-dur">{lecture.duration}</span>}
-                    </div>
-                    <FiPlay className="cd-lecture-play" size={14} />
-                  </button>
-                ))}
+              )}
             </div>
           </div>
-
-          {course.tags?.length > 0 && (
-            <div className="cd-tags-panel">
-              <h4>Tags</h4>
-              <div className="cd-tags">
-                {course.tags.map((tag, i) => (
-                  <span key={i} className="badge badge-info">{tag}</span>
-                ))}
-              </div>
+        ) : (
+          <div className="cd-locked-preview">
+            <FiLock size={48} className="text-muted mb-4 mx-auto block" />
+            <h2 className="text-center mb-5">Course Curriculum</h2>
+            <div className="preview-modules-grid">
+              {currentCourse.modules?.map((mod, i) => (
+                <div key={mod._id || i} className="preview-mod-card card">
+                  <div className="mod-num">Module {i + 1}</div>
+                  <h4>{mod.title}</h4>
+                  <p className="text-muted">{mod.items?.length || 0} learning items</p>
+                </div>
+              ))}
             </div>
-          )}
-        </div>
+            {currentCourse.whatYouWillLearn?.length > 0 && currentCourse.whatYouWillLearn[0] !== "" && (
+               <div className="cd-learn-section mt-5 card mx-auto block" style={{maxWidth: '800px'}}>
+                 <h3 className="mb-4">What you'll learn</h3>
+                 <div className="learn-grid" style={{display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '16px'}}>
+                    {currentCourse.whatYouWillLearn.map((point, i) => point && (
+                      <div key={i} style={{display: 'flex', gap: '10px'}}>
+                        <FiCheckCircle className="text-success flex-shrink-0 mt-1"/>
+                        <span>{point}</span>
+                      </div>
+                    ))}
+                 </div>
+               </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

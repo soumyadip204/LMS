@@ -117,6 +117,27 @@ export const CourseProvider = ({ children }) => {
     }
   }, []);
 
+  // Submission methods
+  const submitAssignment = async (courseId, assignmentId, data) => {
+    const res = await API.post(`/submissions/assignment/${courseId}/${assignmentId}`, data);
+    return res.data;
+  };
+
+  const submitQuiz = async (courseId, quizId, answers) => {
+    const res = await API.post(`/submissions/quiz/${courseId}/${quizId}`, { answers });
+    return res.data;
+  };
+
+  const fetchMySubmissions = useCallback(async (courseId) => {
+    try {
+      const res = await API.get(`/submissions/course/${courseId}`);
+      return res.data;
+    } catch (error) {
+      console.error('Fetch submissions error:', error);
+      return { assignments: [], quizzes: [] };
+    }
+  }, []);
+
   const value = {
     courses,
     myCourses,
@@ -134,6 +155,9 @@ export const CourseProvider = ({ children }) => {
     fetchMyCourses,
     fetchEnrolledCourses,
     setCurrentCourse,
+    submitAssignment,
+    submitQuiz,
+    fetchMySubmissions,
   };
 
   return <CourseContext.Provider value={value}>{children}</CourseContext.Provider>;

@@ -1,0 +1,248 @@
+.course-editor-page {
+  padding-top: var(--navbar-height);
+  min-height: 100vh;
+  padding-bottom: 60px;
+  background: var(--bg-primary);
+}
+
+.editor-topbar {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: var(--navbar-height);
+  z-index: 100;
+}
+
+.editor-topbar .container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 70px;
+}
+
+.editor-topbar h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  flex: 1;
+}
+
+.editor-body {
+  padding-top: 32px;
+}
+
+.editor-main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.editor-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+}
+
+.editor-card h3 {
+  font-size: 1.2rem;
+  margin-bottom: 24px;
+  font-family: var(--font-display);
+}
+
+/* Base form tweaks */
+.num-input { max-width: 120px; }
+.sm-input { padding: 6px 10px; font-size: 0.9rem; flex: 1; }
+.mt-2 { margin-top: 8px; }
+.mb-2 { margin-bottom: 8px; }
+
+/* Modules specific */
+.modules-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.modules-header h3 { margin-bottom: 0; }
+
+.module-builder {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  background: var(--bg-secondary);
+  overflow: hidden;
+}
+
+.module-b-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.mb-title-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  max-width: 400px;
+}
+
+.mb-number {
+  background: var(--accent-gradient);
+  color: white;
+  min-width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.mb-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.module-b-content {
+  padding: 20px;
+}
+
+/* Items */
+.mb-items {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.mb-item-card {
+  background: var(--bg-card);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.mb-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.mb-item-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  max-width: 500px;
+}
+
+.mb-item-type-badge {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: var(--bg-primary);
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.item-content-inline {
+  display: flex;
+  gap: 12px;
+}
+
+.item-content-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mb-add-items {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--border-color);
+}
+
+.mb-add-items span {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-right: 4px;
+}
+
+/* Quiz questions builder */
+.quiz-questions-builder {
+  margin-top: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  background: var(--bg-primary);
+}
+
+.quiz-questions-builder h4 {
+  font-size: 0.95rem;
+  margin-bottom: 16px;
+  color: var(--text-secondary);
+}
+
+.quiz-question-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.qq-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.qq-number {
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.qq-text {
+  margin-bottom: 16px;
+}
+
+.qq-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-left: 12px;
+  border-left: 2px solid var(--border-color);
+}
+
+.qq-option-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.qq-option-check {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--success);
+}
+
+.qq-explain {
+  background: rgba(16, 185, 129, 0.05);
+  border-color: rgba(16, 185, 129, 0.2);
+}

@@ -6,7 +6,7 @@ import User from '../models/User.js';
 // @access  Instructor
 export const createCourse = async (req, res) => {
   try {
-    const { title, description, thumbnail, category, tags, lectures } = req.body;
+    const { title, description, whatYouWillLearn, thumbnail, category, tags, modules } = req.body;
 
     if (!title || !description || !category) {
       return res.status(400).json({ message: 'Title, description, and category are required.' });
@@ -15,10 +15,11 @@ export const createCourse = async (req, res) => {
     const course = await Course.create({
       title,
       description,
+      whatYouWillLearn: whatYouWillLearn || [],
       thumbnail,
       category,
       tags: tags || [],
-      lectures: lectures || [],
+      modules: modules || [],
       instructor: req.user._id,
     });
 
@@ -110,15 +111,16 @@ export const updateCourse = async (req, res) => {
       return res.status(403).json({ message: 'You can only update your own courses.' });
     }
 
-    const { title, description, thumbnail, category, tags, lectures, isPublished } = req.body;
+    const { title, description, whatYouWillLearn, thumbnail, category, tags, modules, isPublished } = req.body;
     const updateData = {};
 
     if (title) updateData.title = title;
     if (description) updateData.description = description;
+    if (whatYouWillLearn) updateData.whatYouWillLearn = whatYouWillLearn;
     if (thumbnail !== undefined) updateData.thumbnail = thumbnail;
     if (category) updateData.category = category;
     if (tags) updateData.tags = tags;
-    if (lectures) updateData.lectures = lectures;
+    if (modules) updateData.modules = modules;
     if (isPublished !== undefined) updateData.isPublished = isPublished;
 
     course = await Course.findByIdAndUpdate(req.params.id, updateData, {

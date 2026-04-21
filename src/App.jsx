@@ -17,6 +17,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import LearnerDashboard from './pages/LearnerDashboard';
 import InstructorDashboard from './pages/InstructorDashboard';
+import CourseEditor from './pages/CourseEditor';
 import AdminDashboard from './pages/AdminDashboard';
 import ProfilePage from './pages/ProfilePage';
 
@@ -52,6 +53,22 @@ function App() {
                   element={
                     <RoleRoute roles={['instructor']}>
                       <InstructorDashboard />
+                    </RoleRoute>
+                  }
+                />
+                <Route
+                  path="/instructor/course/new"
+                  element={
+                    <RoleRoute roles={['instructor']}>
+                      <CourseEditor />
+                    </RoleRoute>
+                  }
+                />
+                <Route
+                  path="/instructor/course/:id/edit"
+                  element={
+                    <RoleRoute roles={['instructor']}>
+                      <CourseEditor />
                     </RoleRoute>
                   }
                 />
