@@ -4,10 +4,12 @@ import { FiArrowRight, FiPlay, FiUsers, FiBookOpen, FiAward, FiSearch } from 're
 import CourseCard from '../components/course/CourseCard';
 import { useCourses } from '../context/CourseContext';
 import { CATEGORIES, CATEGORY_ICONS } from '../utils/helpers';
+import { useAuth } from '../context/AuthContext';
 import './HomePage.css';
 
 const HomePage = () => {
   const { courses, fetchCourses, loading } = useCourses();
+  const { isAuthenticated, user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -19,6 +21,13 @@ const HomePage = () => {
     if (searchQuery.trim()) {
       window.location.href = `/browse?search=${encodeURIComponent(searchQuery)}`;
     }
+  };
+
+  const getDashboardLink = () => {
+    if (!isAuthenticated) return '/register';
+    if (user?.role === 'admin') return '/admin';
+    if (user?.role === 'instructor') return '/instructor';
+    return '/dashboard';
   };
 
   return (
@@ -147,32 +156,34 @@ const HomePage = () => {
               <FiBookOpen size={48} />
               <h3>No courses yet</h3>
               <p>Be the first instructor to create a course!</p>
-              <Link to="/register" className="btn btn-primary">Get Started</Link>
+              <Link to={getDashboardLink()} className="btn btn-primary">Get Started</Link>
             </div>
           )}
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="section cta-section">
-        <div className="container">
-          <div className="cta-card">
-            <div className="cta-bg-decor" />
-            <h2 className="cta-title">Ready to Share Your Knowledge?</h2>
-            <p className="cta-desc">
-              Join as an instructor and create courses that reach learners worldwide. It's completely free.
-            </p>
-            <div className="cta-btns">
-              <Link to="/register" className="btn btn-primary btn-lg">
-                Start Teaching <FiArrowRight />
-              </Link>
-              <Link to="/browse" className="btn btn-secondary btn-lg">
-                Browse Courses
-              </Link>
+      {(!isAuthenticated || user?.role === 'learner') && (
+        <section className="section cta-section">
+          <div className="container">
+            <div className="cta-card">
+              <div className="cta-bg-decor" />
+              <h2 className="cta-title">Ready to Share Your Knowledge?</h2>
+              <p className="cta-desc">
+                Join as an instructor and create courses that reach learners worldwide. It's completely free.
+              </p>
+              <div className="cta-btns">
+                <Link to={isAuthenticated ? "/instructor" : "/register"} className="btn btn-primary btn-lg">
+                  Start Teaching <FiArrowRight />
+                </Link>
+                <Link to="/browse" className="btn btn-secondary btn-lg">
+                  Browse Courses
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 };

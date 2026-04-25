@@ -315,6 +315,16 @@ export const createCourseReview = async (req, res) => {
       return res.status(400).json({ message: 'You cannot review your own course.' });
     }
 
+    const isEnrolled = course.enrolledStudents.some(
+      (studentId) => studentId.toString() === req.user._id.toString()
+    );
+
+    if (!isEnrolled) {
+      return res.status(403).json({ message: 'You must be enrolled to leave a review.' });
+    }
+
+    if (!course.reviews) course.reviews = [];
+
     const alreadyReviewed = course.reviews.find(
       (r) => r.user.toString() === req.user._id.toString()
     );

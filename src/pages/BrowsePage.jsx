@@ -15,6 +15,10 @@ const BrowsePage = () => {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     const params = {};
     if (search) params.search = search;
     if (category !== 'All') params.category = category;

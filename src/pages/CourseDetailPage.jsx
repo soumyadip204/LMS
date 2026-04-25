@@ -259,26 +259,32 @@ const CourseDetailPage = () => {
           )}
         </div>
 
-        <div className="panel-action mt-5">
-          <h3 className="mb-4">Your Submission {existingSub && <span className="badge badge-success ml-2"><FiCheckCircle /> Submitted</span>}</h3>
+        <div className="panel-action mt-5 p-4 rounded-lg bg-light-soft border border-border-color">
+          <h3 className="mb-4 d-flex align-items-center">
+            Your Submission {existingSub && <span className="badge badge-success ml-2"><FiCheckCircle className="mr-1" /> Submitted</span>}
+          </h3>
 
-          <div className="form-group">
-            <label className="form-label">Submission URL (e.g., GitHub, Drive Link)</label>
-            <input className="form-input" placeholder="https://" value={assignmentUrl} onChange={e => setAssignmentUrl(e.target.value)} />
+          <div className="form-group mb-4">
+            <label className="form-label font-weight-bold mb-2 block">Submission URL</label>
+            <div className="input-with-hint">
+               <input className="form-input w-full p-3 rounded border" placeholder="https://github.com/username/project" value={assignmentUrl} onChange={e => setAssignmentUrl(e.target.value)} />
+               <small className="text-muted mt-1 block">Provide a link to your work (e.g., GitHub, Drive, Portfolio)</small>
+            </div>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Submission Text / Notes</label>
-            <textarea className="form-textarea" placeholder="Provide extra code snippet or context here..." rows="4" value={assignmentText} onChange={e => setAssignmentText(e.target.value)}></textarea>
+          <div className="form-group mb-4">
+            <label className="form-label font-weight-bold mb-2 block">Submission Text / Notes</label>
+            <textarea className="form-textarea w-full p-3 rounded border" placeholder="Provide extra context, code snippets, or instructions here..." rows="5" value={assignmentText} onChange={e => setAssignmentText(e.target.value)}></textarea>
           </div>
 
-          <button className="btn btn-primary" onClick={handleAssignmentSubmit}>
+          <button className="btn btn-primary btn-lg w-full" onClick={handleAssignmentSubmit}>
             {existingSub ? 'Update Submission' : 'Submit Assignment'}
           </button>
 
           {existingSub?.score !== null && existingSub?.score !== undefined && (
-            <div className="grade-box mt-4">
-              <strong>Graded Score:</strong> {existingSub.score} / {activeItem.maxScore}
+            <div className="grade-box mt-4 p-4 rounded bg-success-soft border border-success">
+              <FiAward className="mr-2 text-success" />
+              <strong>Graded Score:</strong> <span className="text-success font-weight-bold">{existingSub.score}</span> / {activeItem.maxScore}
             </div>
           )}
         </div>
@@ -300,34 +306,63 @@ const CourseDetailPage = () => {
             </div>
           </div>
 
-          <div className="quiz-review">
+          <div className="quiz-review mt-5">
+            <h3 className="mb-4 pb-2 border-b">Question Review</h3>
             {activeItem.questions.map((q, qIndex) => {
               const studentAnswer = existingSub.answers.find(ans => ans.questionId === q._id);
               const selectedIds = studentAnswer ? studentAnswer.selectedOptionIds : [];
               return (
-                <div key={q._id} className="quiz-result-qcard pb-4 mb-4" style={{ borderBottom: '1px solid var(--border-color)' }}>
-                  <p className="font-weight-600 mb-3">{qIndex + 1}. {q.questionText} <span className="text-muted ml-2">({q.score} pts)</span></p>
+                <div key={q._id} className="quiz-result-qcard p-4 mb-4 rounded-lg bg-white border shadow-sm">
+                  <div className="d-flex justify-content-between mb-3">
+                    <p className="font-weight-bold m-0" style={{ fontSize: '1.1rem' }}>
+                      {qIndex + 1}. {q.questionText}
+                    </p>
+                    <span className="badge badge-secondary">{q.score} pts</span>
+                  </div>
 
-                  <div className="result-options">
+                  <div className="result-options d-flex flex-column gap-2">
                     {q.options.map((opt) => {
                       const isSelected = selectedIds.includes(opt._id);
-                      let optClass = "res-opt ";
-                      if (opt.isCorrect) optClass += "correct-opt ";
-                      if (isSelected && !opt.isCorrect) optClass += "wrong-opt ";
+                      let borderStyle = '1px solid var(--border-color)';
+                      let bgColor = 'var(--bg-primary)';
+                      let textColor = 'var(--text-primary)';
+                      let icon = null;
+
+                      if (opt.isCorrect) {
+                        borderStyle = '2px solid var(--success)';
+                        bgColor = 'rgba(16, 185, 129, 0.1)';
+                        textColor = 'var(--success)';
+                        icon = <FiCheckCircle className="text-success mr-2" />;
+                      } else if (isSelected) {
+                        borderStyle = '2px solid var(--error)';
+                        bgColor = 'rgba(239, 68, 68, 0.1)';
+                        textColor = 'var(--error)';
+                        icon = <FiXCircle className="text-error mr-2" />;
+                      }
 
                       return (
-                        <div key={opt._id} className={`p-2 rounded mb-2 ${optClass}`} style={{
-                          background: opt.isCorrect ? 'rgba(16,185,129,0.1)' : (isSelected ? 'rgba(239,68,68,0.1)' : 'var(--bg-tertiary)'),
-                          border: `1px solid ${opt.isCorrect ? 'var(--success)' : (isSelected ? 'var(--error)' : 'transparent')}`
+                        <div key={opt._id} className="p-3 rounded-lg d-flex align-items-center" style={{
+                          border: borderStyle,
+                          background: bgColor,
+                          color: textColor,
+                          fontWeight: (opt.isCorrect || isSelected) ? '600' : '400'
                         }}>
-                          {isSelected && <FiCheckCircle className="mr-2" />} {opt.text}
+                          <div style={{ width: '24px', display: 'flex', justifyContent: 'center' }}>
+                            {icon}
+                          </div>
+                          <span>{opt.text}</span>
+                          {opt.isCorrect && <span className="ml-auto text-xs uppercase opacity-75">Correct</span>}
+                          {!opt.isCorrect && isSelected && <span className="ml-auto text-xs uppercase opacity-75">Your Choice</span>}
                         </div>
                       )
                     })}
                   </div>
                   {q.explanation && (
-                    <div className="explanation-box mt-3 p-3 rounded" style={{ background: 'rgba(56,189,248,0.1)', borderLeft: '4px solid var(--info)' }}>
-                      <strong>Explanation:</strong> {q.explanation}
+                    <div className="explanation-box mt-4 p-3 rounded bg-light border-l-4 border-info">
+                      <div className="d-flex align-items-center mb-1 text-info font-weight-bold text-sm">
+                        <FiHelpCircle className="mr-2" /> Explanation
+                      </div>
+                      <p className="m-0 text-sm text-secondary">{q.explanation}</p>
                     </div>
                   )}
                 </div>
@@ -347,16 +382,47 @@ const CourseDetailPage = () => {
 
     // Intro state
     return (
-      <div className="cd-interactive-panel text-center">
-        <FiHelpCircle size={64} className="text-warning mb-4" />
-        <h2 className="mb-4">{activeItem.title}</h2>
-        <div className="quiz-meta-row mb-5" style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '20px' }}>
-          <span className="badge badge-secondary"><FiClock className="mr-2" /> {activeItem.time ? `${activeItem.time} mins limit` : 'No time limit'}</span>
-          <span className="badge badge-secondary"><FiBookOpen className="mr-2" /> {activeItem.questions?.length} Questions</span>
-          <span className="badge badge-secondary"><FiStar className="mr-2" /> Max Score: {activeItem.maxScore}</span>
-          <span className="badge badge-secondary"><FiCheckCircle className="mr-2" /> Passing Score: {activeItem.passingScore}</span>
+      <div className="cd-interactive-panel text-center p-5">
+        <div className="quiz-intro-icon mb-4">
+           <FiHelpCircle size={80} className="text-warning opacity-75" />
         </div>
-        <button className="btn btn-primary btn-lg" onClick={startQuiz}>Start Quiz</button>
+        <h2 className="mb-3" style={{ fontSize: '2.2rem' }}>{activeItem.title}</h2>
+        <p className="text-muted mb-5 mx-auto" style={{ maxWidth: '600px' }}>
+           Please review the details below before starting the quiz. Once started, you must complete the quiz within the time limit (if applicable).
+        </p>
+        
+        <div className="quiz-meta-grid mb-5" style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+          gap: '16px',
+          maxWidth: '700px',
+          margin: '0 auto'
+        }}>
+          <div className="p-3 border rounded bg-light d-flex flex-column align-items-center">
+            <FiClock className="mb-2 text-primary" size={20} />
+            <span className="text-xs text-muted uppercase">Time Limit</span>
+            <span className="font-weight-bold">{activeItem.time ? `${activeItem.time} mins` : 'Unlimited'}</span>
+          </div>
+          <div className="p-3 border rounded bg-light d-flex flex-column align-items-center">
+            <FiBookOpen className="mb-2 text-primary" size={20} />
+            <span className="text-xs text-muted uppercase">Questions</span>
+            <span className="font-weight-bold">{activeItem.questions?.length} Items</span>
+          </div>
+          <div className="p-3 border rounded bg-light d-flex flex-column align-items-center">
+            <FiStar className="mb-2 text-primary" size={20} />
+            <span className="text-xs text-muted uppercase">Max Score</span>
+            <span className="font-weight-bold">{activeItem.maxScore} pts</span>
+          </div>
+          <div className="p-3 border rounded bg-light d-flex flex-column align-items-center">
+            <FiCheckCircle className="mb-2 text-primary" size={20} />
+            <span className="text-xs text-muted uppercase">Passing Score</span>
+            <span className="font-weight-bold">{activeItem.passingScore} pts</span>
+          </div>
+        </div>
+        
+        <button className="btn btn-primary btn-lg px-5 shadow-sm" onClick={startQuiz} style={{ fontSize: '1.2rem', padding: '15px 40px' }}>
+           Start Quiz Now
+        </button>
       </div>
     );
   };
@@ -374,22 +440,29 @@ const CourseDetailPage = () => {
 
             <div className="quiz-take-flow">
               {activeItem.questions.map((q, i) => (
-                <div key={q._id} className="quiz-take-qcard mb-5">
-                  <p className="qcard-title font-weight-600 mb-4">{i + 1}. {q.questionText} <span className="text-muted text-sm ml-2">({q.type === 'single' ? 'Pick 1' : 'Pick multiple'})</span></p>
-                  <div className="qcard-options pl-2 border-l border-border-color">
+                <div key={q._id} className="quiz-take-qcard p-5 mb-5 rounded-xl bg-white border-2 border-border-color shadow-sm">
+                  <div className="d-flex justify-content-between align-items-start mb-4">
+                    <h3 className="qcard-title font-weight-bold m-0" style={{ fontSize: '1.25rem', color: 'var(--text-primary)' }}>
+                      {i + 1}. {q.questionText}
+                    </h3>
+                    <span className="badge badge-secondary text-xs">{q.type === 'single' ? 'Single Choice' : 'Multiple Choice'}</span>
+                  </div>
+                  
+                  <div className="qcard-options-grid d-flex flex-column gap-3">
                     {q.options.map(opt => {
                       const myAns = quizState.answers.find(a => a.questionId === q._id);
                       const isChecked = myAns?.selectedOptionIds.includes(opt._id);
                       return (
-                        <label key={opt._id} className="option-label" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', cursor: 'pointer' }}>
+                        <label key={opt._id} className={`quiz-option-label p-4 rounded-lg cursor-pointer transition-all border-2 d-flex align-items-center gap-3 ${isChecked ? 'border-primary bg-primary-soft shadow-sm' : 'border-light bg-light-soft hover:bg-light'}`}>
                           <input
                             type={q.type === 'single' ? 'radio' : 'checkbox'}
                             name={`quest_${q._id}`}
                             checked={isChecked}
                             onChange={() => toggleQuizOption(q._id, q.type, opt._id)}
-                            style={{ width: '18px', height: '18px', accentColor: 'var(--primary-color)' }}
+                            className="custom-control-input"
+                            style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                           />
-                          <span style={{ color: isChecked ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{opt.text}</span>
+                          <span className={`font-medium ${isChecked ? 'text-primary' : 'text-secondary'}`} style={{ fontSize: '1.05rem' }}>{opt.text}</span>
                         </label>
                       );
                     })}
@@ -555,13 +628,13 @@ const CourseDetailPage = () => {
               ))}
             </div>
             {currentCourse.whatYouWillLearn?.length > 0 && currentCourse.whatYouWillLearn[0] !== "" && (
-              <div className="cd-learn-section mt-5 card mx-auto block" style={{ maxWidth: '800px' }}>
-                <h3 className="mb-4">What you'll learn</h3>
-                <div className="learn-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '16px' }}>
+              <div className="cd-learn-section mt-5 card mx-auto block" style={{ maxWidth: '800px', padding: '32px' }}>
+                <h3 className="mb-4" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>What you'll learn</h3>
+                <div className="learn-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
                   {currentCourse.whatYouWillLearn.map((point, i) => point && (
-                    <div key={i} style={{ display: 'flex', gap: '10px' }}>
-                      <FiCheckCircle className="text-success flex-shrink-0 mt-1" />
-                      <span>{point}</span>
+                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                      <FiCheckCircle size={20} className="text-success flex-shrink-0" style={{ marginTop: '2px' }} />
+                      <span style={{ lineHeight: '1.5', color: 'var(--text-secondary)' }}>{point}</span>
                     </div>
                   ))}
                 </div>
@@ -602,7 +675,7 @@ const CourseDetailPage = () => {
             </>
           )}
 
-          {isAuthenticated && !isInstructor && !userHasReviewed && (
+          {isEnrolled && !userHasReviewed && (
             <div className="add-review-box card" style={{ padding: '30px', maxWidth: '600px' }}>
               <h3 className="mb-3">Leave a Review</h3>
               <form onSubmit={handleReviewSubmit}>

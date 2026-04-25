@@ -62,7 +62,7 @@ const Register = () => {
           <p className="auth-subtitle">Start your learning journey today</p>
         </div>
 
-        <form className="auth-form" onSubmit={handleSubmit}>
+        <form className="auth-form" onSubmit={handleSubmit} autoComplete="off">
           <div className="form-group">
             <label className="form-label">Full Name</label>
             <div className="auth-input-wrapper">
@@ -74,6 +74,8 @@ const Register = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 id="register-name"
+                autoComplete="off"
+                name="name-no-autofill"
               />
             </div>
           </div>
@@ -89,6 +91,8 @@ const Register = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 id="register-email"
+                autoComplete="off"
+                name="email-no-autofill"
               />
             </div>
           </div>
@@ -126,6 +130,8 @@ const Register = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 id="register-password"
+                autoComplete="new-password"
+                name="password-no-autofill"
               />
             </div>
           </div>
@@ -141,6 +147,8 @@ const Register = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 id="register-confirm-password"
+                autoComplete="new-password"
+                name="confirm-password-no-autofill"
               />
             </div>
           </div>
