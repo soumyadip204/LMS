@@ -1,6 +1,21 @@
 import Course from '../models/Course.js';
 import User from '../models/User.js';
 
+// Helper to calculate total duration in minutes
+const computeTotalDuration = (modules) => {
+  let total = 0;
+  if (!modules || !Array.isArray(modules)) return total;
+  modules.forEach(m => {
+    if (m.items && Array.isArray(m.items)) {
+      m.items.forEach(item => {
+        if (item.duration) total += Number(item.duration);
+        if (item.time) total += Number(item.time);
+      });
+    }
+  });
+  return total;
+};
+
 // @desc    Create a new course
 // @route   POST /api/courses
 // @access  Instructor
@@ -20,6 +35,7 @@ export const createCourse = async (req, res) => {
       category,
       tags: tags || [],
       modules: modules || [],
+      totalDuration: computeTotalDuration(modules),
       instructor: req.user._id,
     });
 
@@ -82,7 +98,8 @@ export const getCourseById = async (req, res) => {
   try {
     const course = await Course.findById(req.params.id)
       .populate('instructor', 'name avatar bio')
-      .populate('enrolledStudents', 'name avatar');
+      .populate('enrolledStudents', 'name avatar')
+      .populate('reviews.user', 'name avatar');
 
     if (!course) {
       return res.status(404).json({ message: 'Course not found.' });
@@ -120,7 +137,10 @@ export const updateCourse = async (req, res) => {
     if (thumbnail !== undefined) updateData.thumbnail = thumbnail;
     if (category) updateData.category = category;
     if (tags) updateData.tags = tags;
-    if (modules) updateData.modules = modules;
+    if (modules) {
+      updateData.modules = modules;
+      updateData.totalDuration = computeTotalDuration(modules);
+    }
     if (isPublished !== undefined) updateData.isPublished = isPublished;
 
     course = await Course.findByIdAndUpdate(req.params.id, updateData, {
@@ -275,6 +295,53 @@ export const getEnrolledCourses = async (req, res) => {
     res.json({ courses: user.enrolledCourses });
   } catch (error) {
     console.error('GetEnrolledCourses error:', error);
+    res.status(500).json({ message: 'Server error.' });
+  }
+};
+
+// @desc    Create new review
+// @route   POST /api/courses/:id/reviews
+// @access  Private (Learners/Other Instructors)
+export const createCourseReview = async (req, res) => {
+  try {
+    const { rating, comment } = req.body;
+    const course = await Course.findById(req.params.id);
+
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+
+    if (course.instructor.toString() === req.user._id.toString()) {
+      return res.status(400).json({ message: 'You cannot review your own course.' });
+    }
+
+    const alreadyReviewed = course.reviews.find(
+      (r) => r.user.toString() === req.user._id.toString()
+    );
+
+    if (alreadyReviewed) {
+      return res.status(400).json({ message: 'Course already reviewed by you' });
+    }
+
+    const review = {
+      user: req.user._id,
+      rating: Number(rating),
+      comment,
+    };
+
+    course.reviews.push(review);
+    course.totalReviews = course.reviews.length;
+    course.averageRating =
+      course.reviews.reduce((acc, item) => item.rating + acc, 0) / course.reviews.length;
+
+    await course.save();
+    
+    // Repopulate reviews to return user names
+    await course.populate('reviews.user', 'name avatar');
+
+    res.status(201).json({ message: 'Review added successfully', reviews: course.reviews });
+  } catch (error) {
+    console.error('CreateCourseReview error:', error);
     res.status(500).json({ message: 'Server error.' });
   }
 };

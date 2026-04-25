@@ -97,7 +97,7 @@ const CourseEditor = () => {
   // Item helpers
   const addItem = (modIndex, type) => {
     const newMods = [...formData.modules];
-    const baseItem = { type, title: '', duration: '' };
+    const baseItem = { type, title: '', duration: 0 };
     
     if (type === 'video' || type === 'documentation') {
       baseItem.url = '';
@@ -106,11 +106,11 @@ const CourseEditor = () => {
       baseItem.passingScore = 50;
       baseItem.description = '';
       baseItem.attachmentUrl = '';
-      baseItem.time = '';
+      baseItem.time = 0;
     } else if (type === 'quiz') {
-      baseItem.maxScore = 100;
+      baseItem.maxScore = 0;
       baseItem.passingScore = 50;
-      baseItem.time = '';
+      baseItem.time = 0;
       baseItem.shuffleQuestions = false;
       baseItem.questions = [];
     }
@@ -187,8 +187,23 @@ const CourseEditor = () => {
 
     setSaving(true);
     try {
+      // Auto-recalculate max scores for quizzes right before save
+      const computedModules = formData.modules.map(mod => ({
+        ...mod,
+        items: mod.items.map(item => {
+          if (item.type === 'quiz') {
+            return {
+              ...item,
+              maxScore: item.questions.reduce((sum, q) => sum + (Number(q.score) || 0), 0)
+            };
+          }
+          return item;
+        })
+      }));
+
       const payload = {
         ...formData,
+        modules: computedModules,
         tags: formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
         whatYouWillLearn: formData.whatYouWillLearn.filter(item => item.trim() !== '')
       };
@@ -216,28 +231,29 @@ const CourseEditor = () => {
         return (
           <div className="item-content-inline">
             <input className="form-input" placeholder={`${item.type === 'video' ? 'YouTube' : 'Doc'} URL`} value={item.url} onChange={e => updateItem(modIndex, itemIndex, 'url', e.target.value)} />
-            <input className="form-input num-input" placeholder="Duration (e.g. 10m)" value={item.duration} onChange={e => updateItem(modIndex, itemIndex, 'duration', e.target.value)} />
+            <input className="form-input num-input" type="number" placeholder="Duration (minutes)" value={item.duration === 0 ? '' : item.duration} onChange={e => updateItem(modIndex, itemIndex, 'duration', e.target.value === '' ? 0 : (parseInt(e.target.value, 10) || 0))} />
           </div>
         );
       case 'assignment':
         return (
           <div className="item-content-block">
             <div className="form-row">
-              <input className="form-input" type="number" placeholder="Max Score" value={item.maxScore} onChange={e => updateItem(modIndex, itemIndex, 'maxScore', Number(e.target.value))} />
-              <input className="form-input" type="number" placeholder="Passing Score" value={item.passingScore} onChange={e => updateItem(modIndex, itemIndex, 'passingScore', Number(e.target.value))} />
-              <input className="form-input" placeholder="Time allowed (e.g. 2 days)" value={item.time} onChange={e => updateItem(modIndex, itemIndex, 'time', e.target.value)} />
+              <input className="form-input" type="number" placeholder="Max Score" value={item.maxScore === 0 ? '' : item.maxScore} onChange={e => updateItem(modIndex, itemIndex, 'maxScore', e.target.value === '' ? 0 : (parseInt(e.target.value, 10) || 0))} />
+              <input className="form-input" type="number" placeholder="Passing Score" value={item.passingScore === 0 ? '' : item.passingScore} onChange={e => updateItem(modIndex, itemIndex, 'passingScore', e.target.value === '' ? 0 : (parseInt(e.target.value, 10) || 0))} />
+              <input className="form-input" type="number" placeholder="Time limit (minutes)" value={item.time === 0 ? '' : item.time} onChange={e => updateItem(modIndex, itemIndex, 'time', e.target.value === '' ? 0 : (parseInt(e.target.value, 10) || 0))} />
             </div>
             <textarea className="form-textarea" placeholder="Assignment description/instructions..." value={item.description} onChange={e => updateItem(modIndex, itemIndex, 'description', e.target.value)} rows={3} />
             <input className="form-input" placeholder="Attachment URL (optional instructions file)" value={item.attachmentUrl} onChange={e => updateItem(modIndex, itemIndex, 'attachmentUrl', e.target.value)} />
           </div>
         );
       case 'quiz':
+        const dynamicQuizMaxScore = item.questions.reduce((sum, q) => sum + (Number(q.score) || 0), 0);
         return (
           <div className="item-content-block">
             <div className="form-row">
-              <input className="form-input" type="number" placeholder="Total Max Score" value={item.maxScore} onChange={e => updateItem(modIndex, itemIndex, 'maxScore', Number(e.target.value))} />
-              <input className="form-input" type="number" placeholder="Passing Score" value={item.passingScore} onChange={e => updateItem(modIndex, itemIndex, 'passingScore', Number(e.target.value))} />
-              <input className="form-input" placeholder="Time limit (e.g. 30m)" value={item.time} onChange={e => updateItem(modIndex, itemIndex, 'time', e.target.value)} />
+              <input className="form-input" type="number" title="Auto-computed by question scores" value={dynamicQuizMaxScore === 0 ? '' : dynamicQuizMaxScore} disabled placeholder="Total Max Score" />
+              <input className="form-input" type="number" placeholder="Passing Score" value={item.passingScore === 0 ? '' : item.passingScore} onChange={e => updateItem(modIndex, itemIndex, 'passingScore', e.target.value === '' ? 0 : (parseInt(e.target.value, 10) || 0))} />
+              <input className="form-input" type="number" placeholder="Time limit (minutes)" value={item.time === 0 ? '' : item.time} onChange={e => updateItem(modIndex, itemIndex, 'time', e.target.value === '' ? 0 : (parseInt(e.target.value, 10) || 0))} />
             </div>
             <label className="form-checkbox-label" style={{marginBottom: '16px'}}>
               <input type="checkbox" checked={item.shuffleQuestions} onChange={e => updateItem(modIndex, itemIndex, 'shuffleQuestions', e.target.checked)} />
@@ -254,7 +270,7 @@ const CourseEditor = () => {
                       <option value="single">Single Correct</option>
                       <option value="multiple">Multiple Correct</option>
                     </select>
-                    <input className="form-input num-input" type="number" placeholder="Score" value={q.score} onChange={e => updateQuestion(modIndex, itemIndex, qIndex, 'score', Number(e.target.value))} title="Score for this question" />
+                    <input className="form-input num-input" type="number" placeholder="Score" value={q.score === 0 ? '' : q.score} onChange={e => updateQuestion(modIndex, itemIndex, qIndex, 'score', e.target.value === '' ? 0 : (parseInt(e.target.value, 10) || 0))} title="Score for this question" />
                     <button type="button" className="btn-icon text-error" onClick={() => removeQuestion(modIndex, itemIndex, qIndex)}><FiTrash2/></button>
                   </div>
                   

@@ -22,7 +22,7 @@ const itemSchema = new mongoose.Schema({
   title: { type: String, required: true },
   
   // Shared fields
-  duration: { type: String, default: '' },
+  duration: { type: Number, default: 0 }, // Stored in minutes
   
   // Video and Documentation fields
   url: { type: String, default: '' },
@@ -30,7 +30,7 @@ const itemSchema = new mongoose.Schema({
   // Assignment fields
   maxScore: { type: Number, default: 0 },
   passingScore: { type: Number, default: 0 },
-  time: { type: String, default: '' }, // For tracking assignment / quiz time
+  time: { type: Number, default: 0 }, // For tracking assignment / quiz time in minutes
   description: { type: String, default: '' },
   attachmentUrl: { type: String, default: '' }, // External guidance URL
   
@@ -112,7 +112,32 @@ const courseSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    reviews: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+          required: true,
+        },
+        rating: {
+          type: Number,
+          required: true,
+        },
+        comment: {
+          type: String,
+          required: true,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      }
+    ],
     totalReviews: {
+      type: Number,
+      default: 0,
+    },
+    totalDuration: {
       type: Number,
       default: 0,
     },

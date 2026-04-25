@@ -138,6 +138,23 @@ export const CourseProvider = ({ children }) => {
     }
   }, []);
 
+  const submitReview = async (courseId, rating, comment) => {
+    const res = await API.post(`/courses/${courseId}/reviews`, { rating, comment });
+    // Update local state to immediately show the new review
+    setCurrentCourse(prev => {
+      if (prev && prev._id === courseId) {
+        return { 
+          ...prev, 
+          reviews: res.data.reviews, 
+          totalReviews: res.data.reviews.length,
+          averageRating: res.data.reviews.reduce((acc, item) => item.rating + acc, 0) / res.data.reviews.length
+        };
+      }
+      return prev;
+    });
+    return res.data;
+  };
+
   const value = {
     courses,
     myCourses,
@@ -158,6 +175,7 @@ export const CourseProvider = ({ children }) => {
     submitAssignment,
     submitQuiz,
     fetchMySubmissions,
+    submitReview
   };
 
   return <CourseContext.Provider value={value}>{children}</CourseContext.Provider>;
