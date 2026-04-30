@@ -10,6 +10,7 @@ import courseRoutes from './routes/course.routes.js';
 import reviewRoutes from './routes/review.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 import submissionRoutes from './routes/submission.routes.js';
+import forumRoutes from './routes/forum.routes.js';
 
 // Load env vars
 dotenv.config();
@@ -34,6 +35,7 @@ app.use('/api/courses', courseRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/submissions', submissionRoutes);
+app.use('/api/forums', forumRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -51,9 +53,15 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Internal server error' });
 });
 
+import http from 'http';
+import { initSocket } from './socket.js';
+
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+const server = http.createServer(app);
+initSocket(server);
+
+server.listen(PORT, () => {
   console.log(`🚀 EdStream server running on port ${PORT}`);
   console.log(`📡 API: http://localhost:${PORT}/api`);
 });

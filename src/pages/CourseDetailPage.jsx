@@ -11,6 +11,8 @@ import {
   FiEdit3, FiHelpCircle, FiLock, FiExternalLink, FiXCircle, FiAward
 } from 'react-icons/fi';
 import { toast } from 'react-toastify';
+import CourseForum from '../components/course/CourseForum';
+import CourseAnalytics from '../components/course/CourseAnalytics';
 import './CourseDetailPage.css';
 
 const CourseDetailPage = () => {
@@ -35,11 +37,14 @@ const CourseDetailPage = () => {
   const [assignmentText, setAssignmentText] = useState('');
 
   const [quizState, setQuizState] = useState({ started: false, answers: [] });
-  
+
   // Review State
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
+
+  // Tab State
+  const [activeTab, setActiveTab] = useState('content');
 
   const isEnrolled = isAuthenticated && currentCourse?.enrolledStudents?.some(s =>
     (typeof s === 'string' ? s : s._id) === user?._id
@@ -385,16 +390,16 @@ const CourseDetailPage = () => {
     return (
       <div className="cd-interactive-panel" style={{ textAlign: 'center', padding: '48px 40px' }}>
         <div style={{ marginBottom: '20px' }}>
-           <FiHelpCircle size={72} style={{ color: 'var(--warning)', opacity: 0.75 }} />
+          <FiHelpCircle size={72} style={{ color: 'var(--warning)', opacity: 0.75 }} />
         </div>
         <h2 style={{ fontSize: '2rem', marginBottom: '12px' }}>{activeItem.title}</h2>
         <p style={{ color: 'var(--text-muted)', marginBottom: '36px', maxWidth: '550px', margin: '0 auto 36px auto', lineHeight: 1.6 }}>
-           Review the details below before starting. Once started, you must complete the quiz in one sitting.
+          Review the details below before starting. Once started, you must complete the quiz in one sitting.
         </p>
-        
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', 
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
           gap: '16px',
           maxWidth: '700px',
           margin: '0 auto 36px auto'
@@ -420,9 +425,9 @@ const CourseDetailPage = () => {
             <span style={{ fontWeight: 700, fontSize: '1.1rem' }}>{activeItem.passingScore} pts</span>
           </div>
         </div>
-        
+
         <button className="btn btn-primary btn-lg" onClick={startQuiz} style={{ fontSize: '1.1rem', padding: '16px 48px' }}>
-           Start Quiz Now
+          Start Quiz Now
         </button>
       </div>
     );
@@ -441,12 +446,12 @@ const CourseDetailPage = () => {
 
             <div>
               {activeItem.questions.map((q, i) => (
-                <div key={q._id} style={{ 
-                  padding: '28px', 
-                  marginBottom: '24px', 
-                  borderRadius: 'var(--radius-lg)', 
-                  background: 'var(--bg-tertiary)', 
-                  border: '1px solid var(--border-color-hover)' 
+                <div key={q._id} style={{
+                  padding: '28px',
+                  marginBottom: '24px',
+                  borderRadius: 'var(--radius-lg)',
+                  background: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-color-hover)'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', gap: '16px' }}>
                     <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)', flex: 1 }}>
@@ -454,18 +459,18 @@ const CourseDetailPage = () => {
                     </h3>
                     <span className="badge badge-info" style={{ flexShrink: 0 }}>{q.type === 'single' ? 'Single' : 'Multiple'}</span>
                   </div>
-                  
+
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {q.options.map(opt => {
                       const myAns = quizState.answers.find(a => a.questionId === q._id);
                       const isChecked = myAns?.selectedOptionIds.includes(opt._id);
                       return (
-                        <label key={opt._id} style={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          gap: '14px', 
-                          padding: '16px 18px', 
-                          borderRadius: 'var(--radius-md)', 
+                        <label key={opt._id} style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '14px',
+                          padding: '16px 18px',
+                          borderRadius: 'var(--radius-md)',
                           cursor: 'pointer',
                           transition: 'all 0.2s ease',
                           border: isChecked ? '2px solid var(--accent-primary)' : '1px solid var(--border-color)',
@@ -567,69 +572,99 @@ const CourseDetailPage = () => {
 
       <div className="container cd-main">
         {canAccessContent ? (
-          <div className="cd-learning-layout">
-            <div className="cd-sidebar">
-              <h3 className="cd-sidebar-title">Course Modules</h3>
-              <div className="cd-module-list">
-                {currentCourse.modules?.length > 0 ? (
-                  currentCourse.modules.map((module, modIndex) => (
-                    <div key={module._id || modIndex} className="cd-module-accordion">
-                      <div className="cd-module-header" onClick={() => toggleModule(modIndex)}>
-                        <div className="mod-title">
-                          <span className="mod-num">Module {modIndex + 1}</span>
-                          <h4>{module.title}</h4>
-                        </div>
-                        {expandedModules[modIndex] ? <FiChevronUp /> : <FiChevronDown />}
-                      </div>
-
-                      {expandedModules[modIndex] && (
-                        <div className="cd-module-items">
-                          {module.items?.map((item) => {
-                            let itemCompleted = isItemCompleted(item);
-
-                            return (
-                              <button
-                                key={item._id}
-                                className={`cd-item-btn ${activeItem?._id === item._id ? 'active' : ''} ${itemCompleted ? 'completed' : ''}`}
-                                onClick={() => handleItemClick(modIndex, item)}
-                              >
-                                <div className="item-icon-col">
-                                  {itemCompleted ? <FiCheckCircle className="text-success" /> : getItemIcon(item.type)}
-                                </div>
-                                <div className="item-info-col">
-                                  <span className="item-title">{item.title}</span>
-                                  {item.duration > 0 && <span className="item-dur"><FiClock /> {item.duration} mins</span>}
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-muted p-4 text-center">No modules available</p>
-                )}
-              </div>
-            </div>
-
-            <div className="cd-content-area card">
-              {activeItem ? (
-                <>
-                  {activeItem.type === 'video' && renderVideoPlayer()}
-                  {activeItem.type === 'documentation' && renderDocumentation()}
-                  {activeItem.type === 'assignment' && renderAssignmentUI()}
-                  {activeItem.type === 'quiz' && renderQuizUI()}
-                </>
-              ) : (
-                <div className="content-placeholder">
-                  <FiPlayCircle size={64} className="text-muted mb-4" />
-                  <h3>Welcome exactly to the course!</h3>
-                  <p>Select an item from the modules list to begin.</p>
-                </div>
+          <>
+            <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
+              <button
+                className={`btn ${activeTab === 'content' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setActiveTab('content')}
+              >
+                Course Content
+              </button>
+              <button
+                className={`btn ${activeTab === 'forum' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setActiveTab('forum')}
+              >
+                Q&A Forum
+              </button>
+              {(isInstructor || user?.role === 'admin') && (
+                <button
+                  className={`btn ${activeTab === 'analytics' ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => setActiveTab('analytics')}
+                >
+                  Analytics
+                </button>
               )}
             </div>
-          </div>
+
+            {activeTab === 'content' && (
+              <div className="cd-learning-layout">
+                <div className="cd-sidebar">
+                  <h3 className="cd-sidebar-title">Course Modules</h3>
+                  <div className="cd-module-list">
+                    {currentCourse.modules?.length > 0 ? (
+                      currentCourse.modules.map((module, modIndex) => (
+                        <div key={module._id || modIndex} className="cd-module-accordion">
+                          <div className="cd-module-header" onClick={() => toggleModule(modIndex)}>
+                            <div className="mod-title">
+                              <span className="mod-num">Module {modIndex + 1}</span>
+                              <h4>{module.title}</h4>
+                            </div>
+                            {expandedModules[modIndex] ? <FiChevronUp /> : <FiChevronDown />}
+                          </div>
+
+                          {expandedModules[modIndex] && (
+                            <div className="cd-module-items">
+                              {module.items?.map((item) => {
+                                let itemCompleted = isItemCompleted(item);
+
+                                return (
+                                  <button
+                                    key={item._id}
+                                    className={`cd-item-btn ${activeItem?._id === item._id ? 'active' : ''} ${itemCompleted ? 'completed' : ''}`}
+                                    onClick={() => handleItemClick(modIndex, item)}
+                                  >
+                                    <div className="item-icon-col">
+                                      {itemCompleted ? <FiCheckCircle className="text-success" /> : getItemIcon(item.type)}
+                                    </div>
+                                    <div className="item-info-col">
+                                      <span className="item-title">{item.title}</span>
+                                      {item.duration > 0 && <span className="item-dur"><FiClock /> {item.duration} mins</span>}
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-muted p-4 text-center">No modules available</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="cd-content-area card">
+                  {activeItem ? (
+                    <>
+                      {activeItem.type === 'video' && renderVideoPlayer()}
+                      {activeItem.type === 'documentation' && renderDocumentation()}
+                      {activeItem.type === 'assignment' && renderAssignmentUI()}
+                      {activeItem.type === 'quiz' && renderQuizUI()}
+                    </>
+                  ) : (
+                    <div className="content-placeholder">
+                      <FiPlayCircle size={64} className="text-muted mb-4" />
+                      <h3>Welcome exactly to the course!</h3>
+                      <p>Select an item from the modules list to begin.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {activeTab === 'forum' && <CourseForum courseId={id} />}
+            {activeTab === 'analytics' && <CourseAnalytics courseId={id} />}
+          </>
         ) : (
           <div className="cd-locked-preview">
             <FiLock size={48} className="text-muted mb-4 mx-auto block" />
@@ -698,9 +733,9 @@ const CourseDetailPage = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: '24px', alignItems: 'start' }}>
                   <div>
                     <label className="form-label" style={{ marginBottom: '10px', fontWeight: 600, color: 'var(--text-primary)' }}>Rating</label>
-                    <select 
-                      className="form-select" 
-                      value={reviewRating} 
+                    <select
+                      className="form-select"
+                      value={reviewRating}
                       onChange={e => setReviewRating(Number(e.target.value))}
                       style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color-hover)' }}
                     >
@@ -713,9 +748,9 @@ const CourseDetailPage = () => {
                   </div>
                   <div>
                     <label className="form-label" style={{ marginBottom: '10px', fontWeight: 600, color: 'var(--text-primary)' }}>Comment</label>
-                    <textarea 
-                      className="form-textarea" 
-                      rows="3" 
+                    <textarea
+                      className="form-textarea"
+                      rows="3"
                       placeholder="Tell others what you thought of this course..."
                       value={reviewComment}
                       onChange={e => setReviewComment(e.target.value)}

@@ -20,6 +20,9 @@ import InstructorDashboard from './pages/InstructorDashboard';
 import CourseEditor from './pages/CourseEditor';
 import AdminDashboard from './pages/AdminDashboard';
 import ProfilePage from './pages/ProfilePage';
+import HelpCenterPage from './pages/HelpCenterPage';
+import TermsOfServicePage from './pages/TermsOfServicePage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 
 function App() {
   return (
@@ -36,6 +39,9 @@ function App() {
                 <Route path="/course/:id" element={<CourseDetailPage />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/help" element={<HelpCenterPage />} />
+                <Route path="/terms" element={<TermsOfServicePage />} />
+                <Route path="/privacy" element={<PrivacyPolicyPage />} />
 
                 {/* Learner Routes */}
                 <Route
