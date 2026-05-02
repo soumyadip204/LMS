@@ -51,7 +51,7 @@ const Login = () => {
           <p className="auth-subtitle">Sign in to continue your learning journey</p>
         </div>
 
-        <form className="auth-form" onSubmit={handleSubmit}>
+        <form className="auth-form" onSubmit={handleSubmit} autoComplete="off">
           <div className="form-group">
             <label className="form-label">Email Address</label>
             <div className="auth-input-wrapper">
@@ -63,6 +63,8 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 id="login-email"
+                autoComplete="off"
+                name="email-no-autofill"
               />
             </div>
           </div>
@@ -78,6 +80,8 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 id="login-password"
+                autoComplete="new-password"
+                name="password-no-autofill"
               />
             </div>
           </div>

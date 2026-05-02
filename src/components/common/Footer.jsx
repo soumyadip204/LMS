@@ -43,9 +43,9 @@ const Footer = () => {
 
           <div className="footer-col">
             <h4 className="footer-col-title">Support</h4>
-            <Link to="/" className="footer-link">Help Center</Link>
-            <Link to="/" className="footer-link">Terms of Service</Link>
-            <Link to="/" className="footer-link">Privacy Policy</Link>
+            <Link to="/help" className="footer-link">Help Center</Link>
+            <Link to="/terms" className="footer-link">Terms of Service</Link>
+            <Link to="/privacy" className="footer-link">Privacy Policy</Link>
           </div>
         </div>
 

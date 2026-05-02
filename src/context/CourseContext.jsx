@@ -117,6 +117,44 @@ export const CourseProvider = ({ children }) => {
     }
   }, []);
 
+  // Submission methods
+  const submitAssignment = async (courseId, assignmentId, data) => {
+    const res = await API.post(`/submissions/assignment/${courseId}/${assignmentId}`, data);
+    return res.data;
+  };
+
+  const submitQuiz = async (courseId, quizId, answers) => {
+    const res = await API.post(`/submissions/quiz/${courseId}/${quizId}`, { answers });
+    return res.data;
+  };
+
+  const fetchMySubmissions = useCallback(async (courseId) => {
+    try {
+      const res = await API.get(`/submissions/course/${courseId}`);
+      return res.data;
+    } catch (error) {
+      console.error('Fetch submissions error:', error);
+      return { assignments: [], quizzes: [] };
+    }
+  }, []);
+
+  const submitReview = async (courseId, rating, comment) => {
+    const res = await API.post(`/courses/${courseId}/reviews`, { rating, comment });
+    // Update local state to immediately show the new review
+    setCurrentCourse(prev => {
+      if (prev && prev._id === courseId) {
+        return { 
+          ...prev, 
+          reviews: res.data.reviews, 
+          totalReviews: res.data.reviews.length,
+          averageRating: res.data.reviews.reduce((acc, item) => item.rating + acc, 0) / res.data.reviews.length
+        };
+      }
+      return prev;
+    });
+    return res.data;
+  };
+
   const value = {
     courses,
     myCourses,
@@ -134,6 +172,10 @@ export const CourseProvider = ({ children }) => {
     fetchMyCourses,
     fetchEnrolledCourses,
     setCurrentCourse,
+    submitAssignment,
+    submitQuiz,
+    fetchMySubmissions,
+    submitReview
   };
 
   return <CourseContext.Provider value={value}>{children}</CourseContext.Provider>;

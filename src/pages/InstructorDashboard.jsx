@@ -16,92 +16,18 @@ const InstructorDashboard = () => {
   const { user } = useAuth();
   const { myCourses, fetchMyCourses, createCourse, updateCourse, deleteCourse, loading } = useCourses();
   const navigate = useNavigate();
-  const [showModal, setShowModal] = useState(false);
-  const [editingCourse, setEditingCourse] = useState(null);
-  const [formData, setFormData] = useState({
-    title: '', description: '', category: 'Web Development',
-    thumbnail: '', tags: '', isPublished: false, lectures: []
-  });
-  const [saving, setSaving] = useState(false);
+
 
   useEffect(() => {
     fetchMyCourses();
   }, [fetchMyCourses]);
 
-  const resetForm = () => {
-    setFormData({
-      title: '', description: '', category: 'Web Development',
-      thumbnail: '', tags: '', isPublished: false, lectures: []
-    });
-    setEditingCourse(null);
-  };
-
   const openCreateModal = () => {
-    resetForm();
-    setShowModal(true);
+    navigate('/instructor/course/new');
   };
 
   const openEditModal = (course) => {
-    setEditingCourse(course);
-    setFormData({
-      title: course.title,
-      description: course.description,
-      category: course.category,
-      thumbnail: course.thumbnail || '',
-      tags: course.tags?.join(', ') || '',
-      isPublished: course.isPublished,
-      lectures: course.lectures || []
-    });
-    setShowModal(true);
-  };
-
-  const addLecture = () => {
-    setFormData(prev => ({
-      ...prev,
-      lectures: [...prev.lectures, { title: '', youtubeUrl: '', duration: '', order: prev.lectures.length + 1 }]
-    }));
-  };
-
-  const updateLecture = (index, field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      lectures: prev.lectures.map((l, i) => i === index ? { ...l, [field]: value } : l)
-    }));
-  };
-
-  const removeLecture = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      lectures: prev.lectures.filter((_, i) => i !== index).map((l, i) => ({ ...l, order: i + 1 }))
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!formData.title || !formData.description || !formData.category) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-    setSaving(true);
-    try {
-      const data = {
-        ...formData,
-        tags: formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
-      };
-      if (editingCourse) {
-        await updateCourse(editingCourse._id, data);
-        toast.success('Course updated!');
-      } else {
-        await createCourse(data);
-        toast.success('Course created!');
-      }
-      setShowModal(false);
-      resetForm();
-      fetchMyCourses();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to save course');
-    }
-    setSaving(false);
+    navigate(`/instructor/course/${course._id}/edit`);
   };
 
   const handleDelete = async (courseId) => {
@@ -180,8 +106,8 @@ const InstructorDashboard = () => {
               {myCourses.map(course => (
                 <div key={course._id} className="instructor-course-card card">
                   <div className="icc-thumb">
-                    {course.thumbnail || (course.lectures?.[0]?.youtubeUrl && getYouTubeThumbnail(course.lectures[0].youtubeUrl)) ? (
-                      <img src={course.thumbnail || getYouTubeThumbnail(course.lectures[0].youtubeUrl)} alt="" />
+                    {course.thumbnail ? (
+                      <img src={course.thumbnail} alt="" />
                     ) : (
                       <div className="icc-thumb-placeholder"><FiPlay size={24} /></div>
                     )}
@@ -196,7 +122,7 @@ const InstructorDashboard = () => {
                     <p className="icc-category">{course.category}</p>
                     <div className="icc-stats">
                       <span><FiUsers size={14} /> {course.enrollmentCount || 0} students</span>
-                      <span><FiPlay size={14} /> {course.lectures?.length || 0} lectures</span>
+                      <span><FiBookOpen size={14} /> {course.modules?.length || 0} modules</span>
                     </div>
                   </div>
                   <div className="icc-actions">
@@ -226,81 +152,6 @@ const InstructorDashboard = () => {
         </div>
       </div>
 
-      {/* Course Modal */}
-      {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{editingCourse ? 'Edit Course' : 'Create New Course'}</h2>
-              <button className="modal-close" onClick={() => setShowModal(false)}><FiX size={20} /></button>
-            </div>
-
-            <form className="modal-body" onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label className="form-label">Course Title *</label>
-                <input className="form-input" placeholder="e.g. Complete React.js Bootcamp" value={formData.title} onChange={e => setFormData(p => ({...p, title: e.target.value}))} required />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Description *</label>
-                <textarea className="form-textarea" placeholder="Describe what students will learn..." value={formData.description} onChange={e => setFormData(p => ({...p, description: e.target.value}))} required rows={4} />
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">Category *</label>
-                  <select className="form-select" value={formData.category} onChange={e => setFormData(p => ({...p, category: e.target.value}))}>
-                    {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Tags (comma separated)</label>
-                  <input className="form-input" placeholder="react, javascript, web" value={formData.tags} onChange={e => setFormData(p => ({...p, tags: e.target.value}))} />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Thumbnail URL (optional)</label>
-                <input className="form-input" placeholder="https://example.com/image.jpg" value={formData.thumbnail} onChange={e => setFormData(p => ({...p, thumbnail: e.target.value}))} />
-              </div>
-
-              <div className="lectures-section">
-                <div className="lectures-header">
-                  <h3>Lectures ({formData.lectures.length})</h3>
-                  <button type="button" className="btn btn-secondary btn-sm" onClick={addLecture}>
-                    <FiPlus /> Add Lecture
-                  </button>
-                </div>
-                {formData.lectures.map((lecture, i) => (
-                  <div key={i} className="lecture-form-item">
-                    <span className="lecture-order">{i + 1}</span>
-                    <div className="lecture-fields">
-                      <input className="form-input" placeholder="Lecture title" value={lecture.title} onChange={e => updateLecture(i, 'title', e.target.value)} required />
-                      <input className="form-input" placeholder="YouTube URL" value={lecture.youtubeUrl} onChange={e => updateLecture(i, 'youtubeUrl', e.target.value)} required />
-                      <input className="form-input lecture-duration" placeholder="Duration (e.g. 12:34)" value={lecture.duration} onChange={e => updateLecture(i, 'duration', e.target.value)} />
-                    </div>
-                    <button type="button" className="lecture-remove" onClick={() => removeLecture(i)}><FiX /></button>
-                  </div>
-                ))}
-              </div>
-
-              <div className="form-group">
-                <label className="form-checkbox-label">
-                  <input type="checkbox" checked={formData.isPublished} onChange={e => setFormData(p => ({...p, isPublished: e.target.checked}))} />
-                  <span>Publish this course immediately</span>
-                </label>
-              </div>
-
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={saving}>
-                  <FiSave /> {saving ? 'Saving...' : editingCourse ? 'Update Course' : 'Create Course'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
