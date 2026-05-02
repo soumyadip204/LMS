@@ -8,9 +8,11 @@ import Loader from '../components/common/Loader';
 import {
   FiPlayCircle, FiCheckCircle, FiStar, FiClock, FiUsers,
   FiBookOpen, FiChevronDown, FiChevronUp, FiVideo, FiFileText,
-  FiEdit3, FiHelpCircle, FiLock, FiExternalLink
+  FiEdit3, FiHelpCircle, FiLock, FiExternalLink, FiXCircle, FiAward
 } from 'react-icons/fi';
 import { toast } from 'react-toastify';
+import CourseForum from '../components/course/CourseForum';
+import CourseAnalytics from '../components/course/CourseAnalytics';
 import './CourseDetailPage.css';
 
 const CourseDetailPage = () => {
@@ -35,11 +37,14 @@ const CourseDetailPage = () => {
   const [assignmentText, setAssignmentText] = useState('');
 
   const [quizState, setQuizState] = useState({ started: false, answers: [] });
-  
+
   // Review State
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
+
+  // Tab State
+  const [activeTab, setActiveTab] = useState('content');
 
   const isEnrolled = isAuthenticated && currentCourse?.enrolledStudents?.some(s =>
     (typeof s === 'string' ? s : s._id) === user?._id
@@ -259,26 +264,30 @@ const CourseDetailPage = () => {
           )}
         </div>
 
-        <div className="panel-action mt-5">
-          <h3 className="mb-4">Your Submission {existingSub && <span className="badge badge-success ml-2"><FiCheckCircle /> Submitted</span>}</h3>
+        <div style={{ marginTop: '32px', padding: '28px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-tertiary)', border: '1px solid var(--border-color-hover)' }}>
+          <h3 style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.3rem' }}>
+            Your Submission {existingSub && <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><FiCheckCircle /> Submitted</span>}
+          </h3>
 
-          <div className="form-group">
-            <label className="form-label">Submission URL (e.g., GitHub, Drive Link)</label>
-            <input className="form-input" placeholder="https://" value={assignmentUrl} onChange={e => setAssignmentUrl(e.target.value)} />
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ display: 'block', marginBottom: '10px', fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.95rem' }}>Submission URL</label>
+            <input className="form-input" placeholder="https://github.com/username/project" value={assignmentUrl} onChange={e => setAssignmentUrl(e.target.value)} style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color-hover)' }} />
+            <small style={{ display: 'block', marginTop: '6px', color: 'var(--text-muted)', fontSize: '0.82rem' }}>Provide a link to your work (e.g., GitHub, Drive, Portfolio)</small>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Submission Text / Notes</label>
-            <textarea className="form-textarea" placeholder="Provide extra code snippet or context here..." rows="4" value={assignmentText} onChange={e => setAssignmentText(e.target.value)}></textarea>
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ display: 'block', marginBottom: '10px', fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.95rem' }}>Submission Text / Notes</label>
+            <textarea className="form-textarea" placeholder="Provide extra context, code snippets, or instructions here..." rows="5" value={assignmentText} onChange={e => setAssignmentText(e.target.value)} style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color-hover)' }}></textarea>
           </div>
 
-          <button className="btn btn-primary" onClick={handleAssignmentSubmit}>
+          <button className="btn btn-primary btn-lg" style={{ width: '100%' }} onClick={handleAssignmentSubmit}>
             {existingSub ? 'Update Submission' : 'Submit Assignment'}
           </button>
 
           {existingSub?.score !== null && existingSub?.score !== undefined && (
-            <div className="grade-box mt-4">
-              <strong>Graded Score:</strong> {existingSub.score} / {activeItem.maxScore}
+            <div style={{ marginTop: '20px', padding: '16px 20px', borderRadius: 'var(--radius-md)', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid var(--success)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <FiAward style={{ color: 'var(--success)' }} />
+              <strong>Graded Score:</strong> <span style={{ color: 'var(--success)', fontWeight: 700 }}>{existingSub.score}</span> / {activeItem.maxScore}
             </div>
           )}
         </div>
@@ -300,34 +309,65 @@ const CourseDetailPage = () => {
             </div>
           </div>
 
-          <div className="quiz-review">
+          <div style={{ marginTop: '32px' }}>
+            <h3 style={{ marginBottom: '24px', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)' }}>Question Review</h3>
             {activeItem.questions.map((q, qIndex) => {
               const studentAnswer = existingSub.answers.find(ans => ans.questionId === q._id);
               const selectedIds = studentAnswer ? studentAnswer.selectedOptionIds : [];
               return (
-                <div key={q._id} className="quiz-result-qcard pb-4 mb-4" style={{ borderBottom: '1px solid var(--border-color)' }}>
-                  <p className="font-weight-600 mb-3">{qIndex + 1}. {q.questionText} <span className="text-muted ml-2">({q.score} pts)</span></p>
+                <div key={q._id} style={{ padding: '24px', marginBottom: '20px', borderRadius: 'var(--radius-lg)', background: 'var(--bg-tertiary)', border: '1px solid var(--border-color-hover)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                    <p style={{ fontWeight: 700, margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)', flex: 1 }}>
+                      {qIndex + 1}. {q.questionText}
+                    </p>
+                    <span className="badge badge-warning" style={{ marginLeft: '12px', flexShrink: 0 }}>{q.score} pts</span>
+                  </div>
 
-                  <div className="result-options">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {q.options.map((opt) => {
                       const isSelected = selectedIds.includes(opt._id);
-                      let optClass = "res-opt ";
-                      if (opt.isCorrect) optClass += "correct-opt ";
-                      if (isSelected && !opt.isCorrect) optClass += "wrong-opt ";
+                      let borderStyle = '1px solid var(--border-color)';
+                      let bgColor = 'var(--bg-card)';
+                      let textColor = 'var(--text-secondary)';
+
+                      if (opt.isCorrect) {
+                        borderStyle = '2px solid var(--success)';
+                        bgColor = 'rgba(16, 185, 129, 0.12)';
+                        textColor = 'var(--success)';
+                      } else if (isSelected) {
+                        borderStyle = '2px solid var(--error)';
+                        bgColor = 'rgba(239, 68, 68, 0.12)';
+                        textColor = 'var(--error)';
+                      }
 
                       return (
-                        <div key={opt._id} className={`p-2 rounded mb-2 ${optClass}`} style={{
-                          background: opt.isCorrect ? 'rgba(16,185,129,0.1)' : (isSelected ? 'rgba(239,68,68,0.1)' : 'var(--bg-tertiary)'),
-                          border: `1px solid ${opt.isCorrect ? 'var(--success)' : (isSelected ? 'var(--error)' : 'transparent')}`
+                        <div key={opt._id} style={{
+                          padding: '14px 16px',
+                          borderRadius: 'var(--radius-md)',
+                          border: borderStyle,
+                          background: bgColor,
+                          color: textColor,
+                          fontWeight: (opt.isCorrect || isSelected) ? 600 : 400,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px'
                         }}>
-                          {isSelected && <FiCheckCircle className="mr-2" />} {opt.text}
+                          <span style={{ width: '20px', flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
+                            {opt.isCorrect ? <FiCheckCircle /> : (isSelected ? <FiXCircle /> : null)}
+                          </span>
+                          <span style={{ flex: 1 }}>{opt.text}</span>
+                          {opt.isCorrect && <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.5px', opacity: 0.8 }}>Correct</span>}
+                          {!opt.isCorrect && isSelected && <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.5px', opacity: 0.8 }}>Your Pick</span>}
                         </div>
                       )
                     })}
                   </div>
                   {q.explanation && (
-                    <div className="explanation-box mt-3 p-3 rounded" style={{ background: 'rgba(56,189,248,0.1)', borderLeft: '4px solid var(--info)' }}>
-                      <strong>Explanation:</strong> {q.explanation}
+                    <div style={{ marginTop: '16px', padding: '14px 16px', borderRadius: 'var(--radius-md)', background: 'rgba(59, 130, 246, 0.08)', borderLeft: '4px solid var(--info)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', color: 'var(--info)', fontWeight: 600, fontSize: '0.88rem' }}>
+                        <FiHelpCircle /> Explanation
+                      </div>
+                      <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{q.explanation}</p>
                     </div>
                   )}
                 </div>
@@ -346,17 +386,49 @@ const CourseDetailPage = () => {
     }
 
     // Intro state
+    const metaCardStyle = { padding: '20px 16px', border: '1px solid var(--border-color-hover)', borderRadius: 'var(--radius-md)', background: 'var(--bg-tertiary)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' };
     return (
-      <div className="cd-interactive-panel text-center">
-        <FiHelpCircle size={64} className="text-warning mb-4" />
-        <h2 className="mb-4">{activeItem.title}</h2>
-        <div className="quiz-meta-row mb-5" style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '20px' }}>
-          <span className="badge badge-secondary"><FiClock className="mr-2" /> {activeItem.time ? `${activeItem.time} mins limit` : 'No time limit'}</span>
-          <span className="badge badge-secondary"><FiBookOpen className="mr-2" /> {activeItem.questions?.length} Questions</span>
-          <span className="badge badge-secondary"><FiStar className="mr-2" /> Max Score: {activeItem.maxScore}</span>
-          <span className="badge badge-secondary"><FiCheckCircle className="mr-2" /> Passing Score: {activeItem.passingScore}</span>
+      <div className="cd-interactive-panel" style={{ textAlign: 'center', padding: '48px 40px' }}>
+        <div style={{ marginBottom: '20px' }}>
+          <FiHelpCircle size={72} style={{ color: 'var(--warning)', opacity: 0.75 }} />
         </div>
-        <button className="btn btn-primary btn-lg" onClick={startQuiz}>Start Quiz</button>
+        <h2 style={{ fontSize: '2rem', marginBottom: '12px' }}>{activeItem.title}</h2>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '36px', maxWidth: '550px', margin: '0 auto 36px auto', lineHeight: 1.6 }}>
+          Review the details below before starting. Once started, you must complete the quiz in one sitting.
+        </p>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+          gap: '16px',
+          maxWidth: '700px',
+          margin: '0 auto 36px auto'
+        }}>
+          <div style={metaCardStyle}>
+            <FiClock size={22} style={{ color: 'var(--accent-secondary)' }} />
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Time Limit</span>
+            <span style={{ fontWeight: 700, fontSize: '1.1rem' }}>{activeItem.time ? `${activeItem.time} mins` : 'Unlimited'}</span>
+          </div>
+          <div style={metaCardStyle}>
+            <FiBookOpen size={22} style={{ color: 'var(--accent-secondary)' }} />
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Questions</span>
+            <span style={{ fontWeight: 700, fontSize: '1.1rem' }}>{activeItem.questions?.length}</span>
+          </div>
+          <div style={metaCardStyle}>
+            <FiStar size={22} style={{ color: 'var(--accent-secondary)' }} />
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Max Score</span>
+            <span style={{ fontWeight: 700, fontSize: '1.1rem' }}>{activeItem.maxScore} pts</span>
+          </div>
+          <div style={metaCardStyle}>
+            <FiCheckCircle size={22} style={{ color: 'var(--accent-secondary)' }} />
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Passing Score</span>
+            <span style={{ fontWeight: 700, fontSize: '1.1rem' }}>{activeItem.passingScore} pts</span>
+          </div>
+        </div>
+
+        <button className="btn btn-primary btn-lg" onClick={startQuiz} style={{ fontSize: '1.1rem', padding: '16px 48px' }}>
+          Start Quiz Now
+        </button>
       </div>
     );
   };
@@ -365,31 +437,53 @@ const CourseDetailPage = () => {
   if (activeItem?.type === 'quiz' && quizState.started) {
     return (
       <div className="course-detail-page page-enter">
-        <div className="container mt-5 mb-5">
-          <div className="cd-interactive-panel card mx-auto" style={{ maxWidth: '800px' }}>
-            <div className="panel-header mb-4 border-b pb-4">
-              <h2>{activeItem.title}</h2>
-              <div className="metadata-badge text-warning"><FiClock /> {activeItem.time ? `${activeItem.time} mins limit` : 'No time limit'}</div>
+        <div className="container" style={{ marginTop: '40px', marginBottom: '40px' }}>
+          <div className="cd-interactive-panel card" style={{ maxWidth: '800px', margin: '0 auto', padding: '40px' }}>
+            <div style={{ marginBottom: '28px', paddingBottom: '20px', borderBottom: '1px solid var(--border-color)' }}>
+              <h2 style={{ marginBottom: '8px' }}>{activeItem.title}</h2>
+              <div className="metadata-badge" style={{ color: 'var(--warning)' }}><FiClock /> {activeItem.time ? `${activeItem.time} mins limit` : 'No time limit'}</div>
             </div>
 
-            <div className="quiz-take-flow">
+            <div>
               {activeItem.questions.map((q, i) => (
-                <div key={q._id} className="quiz-take-qcard mb-5">
-                  <p className="qcard-title font-weight-600 mb-4">{i + 1}. {q.questionText} <span className="text-muted text-sm ml-2">({q.type === 'single' ? 'Pick 1' : 'Pick multiple'})</span></p>
-                  <div className="qcard-options pl-2 border-l border-border-color">
+                <div key={q._id} style={{
+                  padding: '28px',
+                  marginBottom: '24px',
+                  borderRadius: 'var(--radius-lg)',
+                  background: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-color-hover)'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', gap: '16px' }}>
+                    <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)', flex: 1 }}>
+                      {i + 1}. {q.questionText}
+                    </h3>
+                    <span className="badge badge-info" style={{ flexShrink: 0 }}>{q.type === 'single' ? 'Single' : 'Multiple'}</span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {q.options.map(opt => {
                       const myAns = quizState.answers.find(a => a.questionId === q._id);
                       const isChecked = myAns?.selectedOptionIds.includes(opt._id);
                       return (
-                        <label key={opt._id} className="option-label" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', cursor: 'pointer' }}>
+                        <label key={opt._id} style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '14px',
+                          padding: '16px 18px',
+                          borderRadius: 'var(--radius-md)',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          border: isChecked ? '2px solid var(--accent-primary)' : '1px solid var(--border-color)',
+                          background: isChecked ? 'rgba(108, 43, 217, 0.12)' : 'var(--bg-card)',
+                        }}>
                           <input
                             type={q.type === 'single' ? 'radio' : 'checkbox'}
                             name={`quest_${q._id}`}
                             checked={isChecked}
                             onChange={() => toggleQuizOption(q._id, q.type, opt._id)}
-                            style={{ width: '18px', height: '18px', accentColor: 'var(--primary-color)' }}
+                            style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: 'var(--accent-primary)' }}
                           />
-                          <span style={{ color: isChecked ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{opt.text}</span>
+                          <span style={{ fontSize: '1rem', color: isChecked ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{opt.text}</span>
                         </label>
                       );
                     })}
@@ -397,7 +491,7 @@ const CourseDetailPage = () => {
                 </div>
               ))}
 
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px' }}>
                 <button className="btn btn-secondary" onClick={() => setQuizState({ started: false, answers: [] })}>Cancel</button>
                 <button className="btn btn-primary" onClick={handleQuizSubmit}>Finish & Submit Quiz</button>
               </div>
@@ -478,69 +572,99 @@ const CourseDetailPage = () => {
 
       <div className="container cd-main">
         {canAccessContent ? (
-          <div className="cd-learning-layout">
-            <div className="cd-sidebar">
-              <h3 className="cd-sidebar-title">Course Modules</h3>
-              <div className="cd-module-list">
-                {currentCourse.modules?.length > 0 ? (
-                  currentCourse.modules.map((module, modIndex) => (
-                    <div key={module._id || modIndex} className="cd-module-accordion">
-                      <div className="cd-module-header" onClick={() => toggleModule(modIndex)}>
-                        <div className="mod-title">
-                          <span className="mod-num">Module {modIndex + 1}</span>
-                          <h4>{module.title}</h4>
-                        </div>
-                        {expandedModules[modIndex] ? <FiChevronUp /> : <FiChevronDown />}
-                      </div>
-
-                      {expandedModules[modIndex] && (
-                        <div className="cd-module-items">
-                          {module.items?.map((item) => {
-                            let itemCompleted = isItemCompleted(item);
-
-                            return (
-                              <button
-                                key={item._id}
-                                className={`cd-item-btn ${activeItem?._id === item._id ? 'active' : ''} ${itemCompleted ? 'completed' : ''}`}
-                                onClick={() => handleItemClick(modIndex, item)}
-                              >
-                                <div className="item-icon-col">
-                                  {itemCompleted ? <FiCheckCircle className="text-success" /> : getItemIcon(item.type)}
-                                </div>
-                                <div className="item-info-col">
-                                  <span className="item-title">{item.title}</span>
-                                  {item.duration > 0 && <span className="item-dur"><FiClock /> {item.duration} mins</span>}
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-muted p-4 text-center">No modules available</p>
-                )}
-              </div>
-            </div>
-
-            <div className="cd-content-area card">
-              {activeItem ? (
-                <>
-                  {activeItem.type === 'video' && renderVideoPlayer()}
-                  {activeItem.type === 'documentation' && renderDocumentation()}
-                  {activeItem.type === 'assignment' && renderAssignmentUI()}
-                  {activeItem.type === 'quiz' && renderQuizUI()}
-                </>
-              ) : (
-                <div className="content-placeholder">
-                  <FiPlayCircle size={64} className="text-muted mb-4" />
-                  <h3>Welcome exactly to the course!</h3>
-                  <p>Select an item from the modules list to begin.</p>
-                </div>
+          <>
+            <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
+              <button
+                className={`btn ${activeTab === 'content' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setActiveTab('content')}
+              >
+                Course Content
+              </button>
+              <button
+                className={`btn ${activeTab === 'forum' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setActiveTab('forum')}
+              >
+                Q&A Forum
+              </button>
+              {(isInstructor || user?.role === 'admin') && (
+                <button
+                  className={`btn ${activeTab === 'analytics' ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => setActiveTab('analytics')}
+                >
+                  Analytics
+                </button>
               )}
             </div>
-          </div>
+
+            {activeTab === 'content' && (
+              <div className="cd-learning-layout">
+                <div className="cd-sidebar">
+                  <h3 className="cd-sidebar-title">Course Modules</h3>
+                  <div className="cd-module-list">
+                    {currentCourse.modules?.length > 0 ? (
+                      currentCourse.modules.map((module, modIndex) => (
+                        <div key={module._id || modIndex} className="cd-module-accordion">
+                          <div className="cd-module-header" onClick={() => toggleModule(modIndex)}>
+                            <div className="mod-title">
+                              <span className="mod-num">Module {modIndex + 1}</span>
+                              <h4>{module.title}</h4>
+                            </div>
+                            {expandedModules[modIndex] ? <FiChevronUp /> : <FiChevronDown />}
+                          </div>
+
+                          {expandedModules[modIndex] && (
+                            <div className="cd-module-items">
+                              {module.items?.map((item) => {
+                                let itemCompleted = isItemCompleted(item);
+
+                                return (
+                                  <button
+                                    key={item._id}
+                                    className={`cd-item-btn ${activeItem?._id === item._id ? 'active' : ''} ${itemCompleted ? 'completed' : ''}`}
+                                    onClick={() => handleItemClick(modIndex, item)}
+                                  >
+                                    <div className="item-icon-col">
+                                      {itemCompleted ? <FiCheckCircle className="text-success" /> : getItemIcon(item.type)}
+                                    </div>
+                                    <div className="item-info-col">
+                                      <span className="item-title">{item.title}</span>
+                                      {item.duration > 0 && <span className="item-dur"><FiClock /> {item.duration} mins</span>}
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-muted p-4 text-center">No modules available</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="cd-content-area card">
+                  {activeItem ? (
+                    <>
+                      {activeItem.type === 'video' && renderVideoPlayer()}
+                      {activeItem.type === 'documentation' && renderDocumentation()}
+                      {activeItem.type === 'assignment' && renderAssignmentUI()}
+                      {activeItem.type === 'quiz' && renderQuizUI()}
+                    </>
+                  ) : (
+                    <div className="content-placeholder">
+                      <FiPlayCircle size={64} className="text-muted mb-4" />
+                      <h3>Welcome exactly to the course!</h3>
+                      <p>Select an item from the modules list to begin.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {activeTab === 'forum' && <CourseForum courseId={id} />}
+            {activeTab === 'analytics' && <CourseAnalytics courseId={id} />}
+          </>
         ) : (
           <div className="cd-locked-preview">
             <FiLock size={48} className="text-muted mb-4 mx-auto block" />
@@ -555,13 +679,13 @@ const CourseDetailPage = () => {
               ))}
             </div>
             {currentCourse.whatYouWillLearn?.length > 0 && currentCourse.whatYouWillLearn[0] !== "" && (
-              <div className="cd-learn-section mt-5 card mx-auto block" style={{ maxWidth: '800px' }}>
-                <h3 className="mb-4">What you'll learn</h3>
-                <div className="learn-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '16px' }}>
+              <div style={{ marginTop: '48px', maxWidth: '800px', marginLeft: 'auto', marginRight: 'auto', padding: '32px', background: 'var(--bg-tertiary)', border: '1px solid var(--border-color-hover)', borderRadius: 'var(--radius-lg)' }}>
+                <h3 style={{ marginBottom: '24px', paddingBottom: '14px', borderBottom: '1px solid var(--border-color)', fontSize: '1.4rem', fontWeight: 700 }}>What you'll learn</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '18px 32px' }}>
                   {currentCourse.whatYouWillLearn.map((point, i) => point && (
-                    <div key={i} style={{ display: 'flex', gap: '10px' }}>
-                      <FiCheckCircle className="text-success flex-shrink-0 mt-1" />
-                      <span>{point}</span>
+                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '10px 0' }}>
+                      <FiCheckCircle size={18} style={{ color: 'var(--success)', marginTop: '3px', flexShrink: 0 }} />
+                      <span style={{ lineHeight: '1.6', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>{point}</span>
                     </div>
                   ))}
                 </div>
@@ -581,7 +705,7 @@ const CourseDetailPage = () => {
                     <div key={review._id || idx} className="review-card card" style={{ padding: '20px' }}>
                       <div className="review-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <div className="avatar" style={{ width: '40px', height: '40px', background: 'var(--primary-color)', color: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                          <div style={{ width: '40px', height: '40px', background: 'var(--accent-gradient)', color: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1rem', flexShrink: 0 }}>
                             {review.user?.name?.[0]?.toUpperCase() || 'U'}
                           </div>
                           <span style={{ fontWeight: '600' }}>{review.user?.name || 'Anonymous User'}</span>
@@ -602,38 +726,44 @@ const CourseDetailPage = () => {
             </>
           )}
 
-          {isAuthenticated && !isInstructor && !userHasReviewed && (
-            <div className="add-review-box card" style={{ padding: '30px', maxWidth: '600px' }}>
-              <h3 className="mb-3">Leave a Review</h3>
+          {isEnrolled && !userHasReviewed && (
+            <div style={{ marginTop: '40px', padding: '32px', background: 'var(--bg-tertiary)', border: '1px solid var(--border-color-hover)', borderRadius: 'var(--radius-lg)' }}>
+              <h3 style={{ marginBottom: '24px', fontSize: '1.3rem', fontWeight: 700 }}>Leave a Review</h3>
               <form onSubmit={handleReviewSubmit}>
-                <div className="form-group mb-3">
-                  <label className="form-label">Rating (1-5)</label>
-                  <select 
-                    className="form-input" 
-                    value={reviewRating} 
-                    onChange={e => setReviewRating(Number(e.target.value))}
-                  >
-                    <option value="5">5 - Excellent</option>
-                    <option value="4">4 - Very Good</option>
-                    <option value="3">3 - Good</option>
-                    <option value="2">2 - Fair</option>
-                    <option value="1">1 - Poor</option>
-                  </select>
+                <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: '24px', alignItems: 'start' }}>
+                  <div>
+                    <label className="form-label" style={{ marginBottom: '10px', fontWeight: 600, color: 'var(--text-primary)' }}>Rating</label>
+                    <select
+                      className="form-select"
+                      value={reviewRating}
+                      onChange={e => setReviewRating(Number(e.target.value))}
+                      style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color-hover)' }}
+                    >
+                      <option value="5">5 - Excellent</option>
+                      <option value="4">4 - Very Good</option>
+                      <option value="3">3 - Good</option>
+                      <option value="2">2 - Fair</option>
+                      <option value="1">1 - Poor</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="form-label" style={{ marginBottom: '10px', fontWeight: 600, color: 'var(--text-primary)' }}>Comment</label>
+                    <textarea
+                      className="form-textarea"
+                      rows="3"
+                      placeholder="Tell others what you thought of this course..."
+                      value={reviewComment}
+                      onChange={e => setReviewComment(e.target.value)}
+                      required
+                      style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color-hover)' }}
+                    ></textarea>
+                  </div>
                 </div>
-                <div className="form-group mb-3">
-                  <label className="form-label">Comment</label>
-                  <textarea 
-                    className="form-textarea" 
-                    rows="3" 
-                    placeholder="Tell others what you thought of this course..."
-                    value={reviewComment}
-                    onChange={e => setReviewComment(e.target.value)}
-                    required
-                  ></textarea>
+                <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+                  <button type="submit" className="btn btn-primary" disabled={submittingReview} style={{ padding: '12px 36px' }}>
+                    {submittingReview ? 'Submitting...' : 'Submit Review'}
+                  </button>
                 </div>
-                <button type="submit" className="btn btn-primary" disabled={submittingReview}>
-                  {submittingReview ? 'Submitting...' : 'Submit Review'}
-                </button>
               </form>
             </div>
           )}

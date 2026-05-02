@@ -5,7 +5,7 @@
   right: 0;
   height: var(--navbar-height);
   z-index: 1000;
-  background: rgba(10, 10, 15, 0.8);
+  background: var(--bg-glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid transparent;
@@ -13,9 +13,9 @@
 }
 
 .navbar-scrolled {
-  background: rgba(10, 10, 15, 0.95);
+  background: var(--bg-primary);
   border-bottom: 1px solid var(--border-color);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
 .navbar-container {
@@ -76,12 +76,12 @@
 
 .nav-link:hover {
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-tertiary);
 }
 
 .nav-link.active {
   color: var(--text-primary);
-  background: rgba(108, 43, 217, 0.1);
+  background: var(--accent-glow);
 }
 
 .nav-auth-btns {
@@ -196,7 +196,7 @@
 
 .nav-dropdown-item:hover {
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-tertiary);
 }
 
 .nav-dropdown-logout {

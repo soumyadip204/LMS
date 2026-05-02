@@ -1,5 +1,8 @@
 import Course from '../models/Course.js';
 import User from '../models/User.js';
+import QuizSubmission from '../models/QuizSubmission.js';
+import AssignmentSubmission from '../models/AssignmentSubmission.js';
+import ForumThread from '../models/ForumThread.js';
 
 // Helper to calculate total duration in minutes
 const computeTotalDuration = (modules) => {
@@ -315,6 +318,16 @@ export const createCourseReview = async (req, res) => {
       return res.status(400).json({ message: 'You cannot review your own course.' });
     }
 
+    const isEnrolled = course.enrolledStudents.some(
+      (studentId) => studentId.toString() === req.user._id.toString()
+    );
+
+    if (!isEnrolled) {
+      return res.status(403).json({ message: 'You must be enrolled to leave a review.' });
+    }
+
+    if (!course.reviews) course.reviews = [];
+
     const alreadyReviewed = course.reviews.find(
       (r) => r.user.toString() === req.user._id.toString()
     );
@@ -343,5 +356,136 @@ export const createCourseReview = async (req, res) => {
   } catch (error) {
     console.error('CreateCourseReview error:', error);
     res.status(500).json({ message: 'Server error.' });
+  }
+};
+
+// @desc    Get course analytics
+// @route   GET /api/courses/:id/analytics
+// @access  Instructor/Admin
+export const getCourseAnalytics = async (req, res) => {
+  try {
+    const courseId = req.params.id;
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+
+    if (course.instructor.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized to view analytics' });
+    }
+
+    // 1. Enrollment & Engagement
+    const totalEnrolled = course.enrolledStudents.length;
+    const forumThreads = await ForumThread.find({ course: courseId });
+    const totalThreads = forumThreads.length;
+    const totalReplies = forumThreads.reduce((acc, thread) => acc + thread.replies.length, 0);
+    
+    // 2. Interactive Items Count
+    let totalAssignments = 0;
+    let totalQuizzes = 0;
+    course.modules.forEach(m => {
+      m.items.forEach(item => {
+        if (item.type === 'assignment') totalAssignments++;
+        if (item.type === 'quiz') totalQuizzes++;
+      });
+    });
+    const totalInteractiveItems = totalAssignments + totalQuizzes;
+
+    // 3. Submissions & Grades
+    const quizSubmissions = await QuizSubmission.find({ courseId: courseId });
+    const assignmentSubmissions = await AssignmentSubmission.find({ courseId: courseId });
+
+    // Calculate active students (students who submitted at least one thing)
+    const activeStudentIds = new Set();
+    let totalQuizScore = 0;
+    let totalQuizMax = 0;
+    let gradedAssignments = 0;
+    let totalAssignmentScore = 0;
+
+    quizSubmissions.forEach(sub => {
+      activeStudentIds.add(sub.studentId.toString());
+      totalQuizScore += sub.score;
+      // We need max score to get percentage, but we can just use average score for now
+    });
+
+    assignmentSubmissions.forEach(sub => {
+      activeStudentIds.add(sub.studentId.toString());
+      if (sub.status === 'graded' && sub.score != null) {
+        gradedAssignments++;
+        totalAssignmentScore += sub.score;
+      }
+    });
+
+    const activeStudents = activeStudentIds.size;
+    
+    // Calculate average progress
+    // Progress for a student = (their submissions) / totalInteractiveItems
+    // Total submissions = quizSubmissions.length + assignmentSubmissions.length
+    // Average progress = (Total submissions / totalEnrolled) / totalInteractiveItems
+    let averageProgress = 0;
+    if (totalEnrolled > 0 && totalInteractiveItems > 0) {
+      const submissionsPerStudent = (quizSubmissions.length + assignmentSubmissions.length) / totalEnrolled;
+      averageProgress = (submissionsPerStudent / totalInteractiveItems) * 100;
+    }
+
+    const averageQuizScore = quizSubmissions.length > 0 ? (totalQuizScore / quizSubmissions.length).toFixed(1) : 0;
+    const averageAssignmentScore = gradedAssignments > 0 ? (totalAssignmentScore / gradedAssignments).toFixed(1) : 0;
+
+    // 4. Individual Learner Tracking
+    const enrolledUsers = await User.find({ _id: { $in: course.enrolledStudents } }, 'name email avatar');
+    
+    const studentPerformance = enrolledUsers.map(user => {
+      const studentIdStr = user._id.toString();
+      
+      const studentQuizzes = quizSubmissions.filter(sub => sub.studentId.toString() === studentIdStr);
+      const studentAssignments = assignmentSubmissions.filter(sub => sub.studentId.toString() === studentIdStr);
+      
+      const studentQuizScore = studentQuizzes.reduce((acc, sub) => acc + sub.score, 0);
+      const avgQuiz = studentQuizzes.length > 0 ? (studentQuizScore / studentQuizzes.length).toFixed(1) : 0;
+      
+      const gradedAssigns = studentAssignments.filter(sub => sub.status === 'graded' && sub.score != null);
+      const studentAssignScore = gradedAssigns.reduce((acc, sub) => acc + sub.score, 0);
+      const avgAssign = gradedAssigns.length > 0 ? (studentAssignScore / gradedAssigns.length).toFixed(1) : 0;
+      
+      const totalSubs = studentQuizzes.length + studentAssignments.length;
+      const progress = totalInteractiveItems > 0 ? Math.min(Math.round((totalSubs / totalInteractiveItems) * 100), 100) : 0;
+      
+      return {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        progress,
+        completedQuizzes: studentQuizzes.length,
+        averageQuizScore: Number(avgQuiz),
+        completedAssignments: studentAssignments.length,
+        averageAssignmentScore: Number(avgAssign)
+      };
+    });
+
+    res.json({
+      enrollment: {
+        totalEnrolled,
+        activeStudents,
+        engagementRate: totalEnrolled > 0 ? Math.round((activeStudents / totalEnrolled) * 100) : 0
+      },
+      performance: {
+        averageProgress: Math.min(Math.round(averageProgress), 100),
+        averageQuizScore: Number(averageQuizScore),
+        averageAssignmentScore: Number(averageAssignmentScore),
+        totalSubmissions: quizSubmissions.length + assignmentSubmissions.length
+      },
+      engagement: {
+        totalReviews: course.totalReviews || 0,
+        averageRating: course.averageRating || 0,
+        forumThreads: totalThreads,
+        forumReplies: totalReplies
+      },
+      studentPerformance
+    });
+  } catch (error) {
+    console.error('getCourseAnalytics error:', error);
+    res.status(500).json({ message: 'Server error fetching analytics' });
   }
 };

@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 
@@ -10,6 +12,7 @@ import courseRoutes from './routes/course.routes.js';
 import reviewRoutes from './routes/review.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 import submissionRoutes from './routes/submission.routes.js';
+import forumRoutes from './routes/forum.routes.js';
 
 // Load env vars
 dotenv.config();
@@ -19,7 +22,30 @@ connectDB();
 
 const app = express();
 
-// Middleware
+// ── Security Middleware ──
+app.use(helmet());                       // Sets secure HTTP headers (CSP, X-Frame-Options, etc.)
+
+// Global rate limiter – 100 requests per 15 minutes per IP
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,                 // Return rate-limit info in RateLimit-* headers
+  legacyHeaders: false,
+  message: { message: 'Too many requests from this IP, please try again after 15 minutes.' },
+});
+app.use('/api', globalLimiter);
+
+// Strict auth limiter – 10 attempts per 15 minutes per IP (login / register)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many login/register attempts. Please try again after 15 minutes.' },
+});
+app.use('/api/auth', authLimiter);
+
+// ── General Middleware ──
 app.use(cors({
   origin: 'http://localhost:5173',
   credentials: true,
@@ -34,6 +60,7 @@ app.use('/api/courses', courseRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/submissions', submissionRoutes);
+app.use('/api/forums', forumRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -51,9 +78,15 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Internal server error' });
 });
 
+import http from 'http';
+import { initSocket } from './socket.js';
+
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+const server = http.createServer(app);
+initSocket(server);
+
+server.listen(PORT, () => {
   console.log(`🚀 EdStream server running on port ${PORT}`);
   console.log(`📡 API: http://localhost:${PORT}/api`);
 });
