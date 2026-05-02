@@ -25,7 +25,9 @@
   transition: all var(--transition-fast);
 }
 
-.admin-tab:hover { color: var(--text-primary); }
+.admin-tab:hover {
+  color: var(--text-primary);
+}
 
 .admin-tab.active {
   background: var(--accent-primary);
@@ -53,7 +55,10 @@
   color: var(--text-primary);
 }
 
-.text-muted { color: var(--text-muted); font-size: 0.88rem; }
+.text-muted {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
 
 /* Top Lists */
 .admin-top-list {
@@ -71,7 +76,7 @@
   transition: background var(--transition-fast);
 }
 
-.admin-top-item:hover { background: rgba(255, 255, 255, 0.03); }
+.admin-top-item:hover { background: var(--bg-tertiary); }
 
 .admin-top-rank {
   width: 28px;
@@ -214,10 +219,12 @@
   border-bottom: 1px solid var(--border-color);
 }
 
-.admin-table tr:last-child td { border-bottom: none; }
+.admin-table tr:last-child td {
+  border-bottom: none;
+}
 
 .admin-table tr:hover td {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg-tertiary);
 }
 
 .admin-table-user {
@@ -253,10 +260,19 @@
 }
 
 @media (max-width: 1024px) {
-  .admin-grid { grid-template-columns: 1fr; }
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 768px) {
-  .admin-tabs { width: 100%; }
-  .admin-tab { flex: 1; text-align: center; padding: 10px 12px; }
+  .admin-tabs {
+    width: 100%;
+  }
+
+  .admin-tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px 12px;
+  }
 }
