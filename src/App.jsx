@@ -10,6 +10,7 @@ import Footer from './components/common/Footer';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import RoleRoute from './components/common/RoleRoute';
 import AnimatedRoutes from './components/common/AnimatedRoutes';
+import ScrollToTop from './components/common/ScrollToTop';
 
 import HomePage from './pages/HomePage';
 import BrowsePage from './pages/BrowsePage';
@@ -29,6 +30,7 @@ import ContactPage from './pages/ContactPage';
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <AuthProvider>
         <CourseProvider>
           <div className="app">

@@ -44,11 +44,7 @@ const Login = () => {
 
       <div className="auth-card animate-fade-in">
         <div className="auth-header">
-          <Link to="/" className="auth-logo">
-            <img src="/logo.png" alt="EdStream" className="auth-logo-img" />
-          </Link>
           <h1 className="auth-title">Welcome Back</h1>
-          <p className="auth-subtitle">Sign in to continue your learning journey</p>
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit} autoComplete="off">

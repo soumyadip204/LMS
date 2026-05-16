@@ -12,9 +12,11 @@ export const getYouTubeThumbnail = (url) => {
   return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
 };
 
-// Format date
 export const formatDate = (date) => {
-  return new Date(date).toLocaleDateString('en-US', {
+  if (!date) return 'Today';
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return 'Today';
+  return d.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',

@@ -25,8 +25,24 @@ const Register = () => {
       toast.error('Passwords do not match');
       return;
     }
-    if (password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+    if (password.length < 8) {
+      toast.error('Password must be at least 8 characters');
+      return;
+    }
+    if (!/[A-Z]/.test(password)) {
+      toast.error('Password must contain at least one uppercase letter');
+      return;
+    }
+    if (!/[a-z]/.test(password)) {
+      toast.error('Password must contain at least one lowercase letter');
+      return;
+    }
+    if (!/[0-9]/.test(password)) {
+      toast.error('Password must contain at least one number');
+      return;
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      toast.error('Password must contain at least one special character');
       return;
     }
     setLoading(true);
@@ -53,47 +69,45 @@ const Register = () => {
         <div className="auth-bg-circle auth-bg-circle-3" />
       </div>
 
-      <div className="auth-card animate-fade-in">
+      <div className="auth-card register-card animate-fade-in">
         <div className="auth-header">
-          <Link to="/" className="auth-logo">
-            <img src="/logo.png" alt="EdStream" className="auth-logo-img" />
-          </Link>
           <h1 className="auth-title">Join EdStream</h1>
-          <p className="auth-subtitle">Start your learning journey today</p>
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit} autoComplete="off">
-          <div className="form-group">
-            <label className="form-label">Full Name</label>
-            <div className="auth-input-wrapper">
-              <FiUser className="auth-input-icon" />
-              <input
-                type="text"
-                className="form-input auth-input"
-                placeholder="Enter your full name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                id="register-name"
-                autoComplete="off"
-                name="name-no-autofill"
-              />
+          <div className="auth-form-grid">
+            <div className="form-group">
+              <label className="form-label">Full Name</label>
+              <div className="auth-input-wrapper">
+                <FiUser className="auth-input-icon" />
+                <input
+                  type="text"
+                  className="form-input auth-input"
+                  placeholder="Enter your full name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  id="register-name"
+                  autoComplete="off"
+                  name="name-no-autofill"
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="form-group">
-            <label className="form-label">Email Address</label>
-            <div className="auth-input-wrapper">
-              <FiMail className="auth-input-icon" />
-              <input
-                type="email"
-                className="form-input auth-input"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                id="register-email"
-                autoComplete="off"
-                name="email-no-autofill"
-              />
+            <div className="form-group">
+              <label className="form-label">Email Address</label>
+              <div className="auth-input-wrapper">
+                <FiMail className="auth-input-icon" />
+                <input
+                  type="email"
+                  className="form-input auth-input"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  id="register-email"
+                  autoComplete="off"
+                  name="email-no-autofill"
+                />
+              </div>
             </div>
           </div>
 
@@ -119,37 +133,39 @@ const Register = () => {
             </div>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Password</label>
-            <div className="auth-input-wrapper">
-              <FiLock className="auth-input-icon" />
-              <input
-                type="password"
-                className="form-input auth-input"
-                placeholder="Create a password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                id="register-password"
-                autoComplete="new-password"
-                name="password-no-autofill"
-              />
+          <div className="auth-form-grid">
+            <div className="form-group">
+              <label className="form-label">Password</label>
+              <div className="auth-input-wrapper">
+                <FiLock className="auth-input-icon" />
+                <input
+                  type="password"
+                  className="form-input auth-input"
+                  placeholder="Create a password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  id="register-password"
+                  autoComplete="new-password"
+                  name="password-no-autofill"
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="form-group">
-            <label className="form-label">Confirm Password</label>
-            <div className="auth-input-wrapper">
-              <FiLock className="auth-input-icon" />
-              <input
-                type="password"
-                className="form-input auth-input"
-                placeholder="Confirm your password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                id="register-confirm-password"
-                autoComplete="new-password"
-                name="confirm-password-no-autofill"
-              />
+            <div className="form-group">
+              <label className="form-label">Confirm Password</label>
+              <div className="auth-input-wrapper">
+                <FiLock className="auth-input-icon" />
+                <input
+                  type="password"
+                  className="form-input auth-input"
+                  placeholder="Confirm your password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  id="register-confirm-password"
+                  autoComplete="new-password"
+                  name="confirm-password-no-autofill"
+                />
+              </div>
             </div>
           </div>
 
