@@ -1,6 +1,24 @@
 import Review from '../models/Review.js';
 import Course from '../models/Course.js';
 
+// @desc    Get featured reviews for homepage
+// @route   GET /api/reviews/featured
+// @access  Public
+export const getFeaturedReviews = async (req, res) => {
+  try {
+    const reviews = await Review.find({ rating: { $gte: 4 } })
+      .populate('user', 'name avatar')
+      .populate('course', 'title')
+      .sort({ rating: -1, createdAt: -1 })
+      .limit(3);
+
+    res.json({ reviews });
+  } catch (error) {
+    console.error('GetFeaturedReviews error:', error);
+    res.status(500).json({ message: 'Server error.' });
+  }
+};
+
 // @desc    Get reviews for a course
 // @route   GET /api/reviews/course/:courseId
 // @access  Public

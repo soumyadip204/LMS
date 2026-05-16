@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import bcrypt from 'bcryptjs';
 
 // @desc    Get user profile
 // @route   GET /api/users/profile
@@ -20,37 +21,60 @@ export const getProfile = async (req, res) => {
   }
 };
 
-// @desc    Update user profile
+// @desc    Update user profile (role-gated fields)
 // @route   PUT /api/users/profile
 // @access  Private
 export const updateProfile = async (req, res) => {
   try {
-    const { name, bio, avatar } = req.body;
-    const updateData = {};
+    const user = await User.findById(req.user._id).select('+password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
 
-    if (name) updateData.name = name;
-    if (bio !== undefined) updateData.bio = bio;
-    if (avatar !== undefined) updateData.avatar = avatar;
+    const { name, bio, avatar, password, experience, domainInterests, educationalQualifications, skills, occupation } = req.body;
+    const role = user.role;
 
-    const user = await User.findByIdAndUpdate(req.user._id, updateData, {
-      new: true,
-      runValidators: true,
-    });
+    // --- Fields all roles can edit ---
+    if (name) user.name = name;
+    if (bio !== undefined) user.bio = bio;
+    if (avatar !== undefined) user.avatar = avatar;
+
+    // --- Password (all roles) ---
+    if (password) {
+      if (password.length < 8) {
+        return res.status(400).json({ message: 'Password must be at least 8 characters.' });
+      }
+      user.password = password; // pre-save hook handles hashing
+    }
+
+    // --- Instructor-only fields ---
+    if (role === 'instructor') {
+      if (experience !== undefined) user.experience = experience;
+      if (educationalQualifications !== undefined) user.educationalQualifications = educationalQualifications;
+      if (skills !== undefined) user.skills = skills;
+    }
+
+    // --- Learner-only fields ---
+    if (role === 'learner') {
+      if (domainInterests !== undefined) user.domainInterests = domainInterests;
+      if (educationalQualifications !== undefined) user.educationalQualifications = educationalQualifications;
+      if (skills !== undefined) user.skills = skills;
+      if (occupation !== undefined) user.occupation = occupation;
+    }
+
+    await user.save();
+
+    // Return user without password
+    const updatedUser = user.toObject();
+    delete updatedUser.password;
 
     res.json({
       message: 'Profile updated successfully.',
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avatar: user.avatar,
-        bio: user.bio,
-      },
+      user: updatedUser,
     });
   } catch (error) {
     console.error('UpdateProfile error:', error);
-    res.status(500).json({ message: 'Server error.' });
+    res.status(500).json({ message: error.message || 'Server error.' });
   }
 };
 
@@ -60,7 +84,7 @@ export const updateProfile = async (req, res) => {
 export const getInstructorProfile = async (req, res) => {
   try {
     const instructor = await User.findById(req.params.id)
-      .select('name avatar bio createdCourses createdAt')
+      .select('name avatar bio experience educationalQualifications skills createdCourses createdAt')
       .populate({
         path: 'createdCourses',
         match: { isPublished: true },

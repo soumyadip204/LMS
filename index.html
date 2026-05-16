@@ -7,9 +7,120 @@
     <meta name="description" content="EdStream - Free online learning platform. Access curated YouTube courses, enroll for free, and learn from expert instructors across technology and design." />
     <meta name="keywords" content="online learning, free courses, youtube courses, education, edstream" />
     <title>EdStream - Learn Without Boundaries</title>
+    <style>
+      body { margin: 0; background-color: #0a0a0a; overflow-x: hidden; }
+      
+      #initial-loader {
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        background-color: #0a0a0a; /* Enforce dark cinematic background for preloader */
+        z-index: 99999;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+
+      #initial-loader::before {
+        content: "";
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: radial-gradient(circle at center, rgba(139, 92, 246, 0.15) 0%, #0a0a0a 70%);
+      }
+
+      .loader-container-3d {
+        position: relative; width: 150px; height: 150px;
+        display: flex; align-items: center; justify-content: center;
+        perspective: 800px; margin-bottom: 40px;
+      }
+
+      .ambient-glow {
+        position: absolute; width: 80px; height: 80px;
+        background: #8b5cf6; border-radius: 50%; filter: blur(40px);
+        opacity: 0.6; animation: pulseAmbient 2.5s ease-in-out infinite alternate;
+      }
+
+      .center-diamond {
+        position: absolute; width: 40px; height: 40px;
+        background: linear-gradient(135deg, #8b5cf6, #c4b5fd);
+        border-radius: 8px; transform: rotate(45deg);
+        box-shadow: 0 0 30px rgba(139, 92, 246, 0.8), inset 0 0 10px rgba(255, 255, 255, 0.5);
+        animation: diamondBreathe 2s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+        z-index: 10;
+      }
+
+      .orbit-ring {
+        position: absolute; border-radius: 50%;
+        border: 2px solid transparent; transform-style: preserve-3d;
+      }
+
+      .orbit-ring-1 {
+        width: 100px; height: 100px; border-left: 2px solid #8b5cf6; border-right: 2px solid #8b5cf6;
+        animation: spin3D1 3s linear infinite;
+      }
+
+      .orbit-ring-2 {
+        width: 130px; height: 130px; border-top: 2px solid #c4b5fd; border-bottom: 2px solid #c4b5fd;
+        animation: spin3D2 4s linear infinite;
+      }
+
+      .orbit-ring-3 {
+        width: 160px; height: 160px; border: 1px dashed rgba(139, 92, 246, 0.5);
+        animation: spin3D3 6s linear infinite reverse;
+      }
+
+      .preload-text-wrapper {
+        position: relative; display: flex; flex-direction: column; align-items: center;
+      }
+
+      .preload-text {
+        font-size: 1.5rem; font-weight: 800; color: #ffffff;
+        letter-spacing: 6px; text-transform: uppercase; margin: 0;
+        text-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+        animation: textGlow 2s ease-in-out infinite alternate;
+      }
+
+      .preload-subtext {
+        font-size: 0.75rem; color: #c4b5fd; letter-spacing: 3px;
+        margin-top: 10px; text-transform: uppercase; font-weight: 600; opacity: 0.8;
+      }
+
+      @keyframes pulseAmbient { 0% { transform: scale(0.8); opacity: 0.4; } 100% { transform: scale(1.5); opacity: 0.8; } }
+      @keyframes diamondBreathe { 0% { transform: rotate(45deg) scale(0.9); } 100% { transform: rotate(405deg) scale(1.1); } }
+      @keyframes spin3D1 { 0% { transform: rotateX(65deg) rotateZ(0deg); } 100% { transform: rotateX(65deg) rotateZ(360deg); } }
+      @keyframes spin3D2 { 0% { transform: rotateY(65deg) rotateX(20deg) rotateZ(0deg); } 100% { transform: rotateY(65deg) rotateX(20deg) rotateZ(360deg); } }
+      @keyframes spin3D3 { 0% { transform: rotateX(-65deg) rotateY(-20deg) rotateZ(0deg); } 100% { transform: rotateX(-65deg) rotateY(-20deg) rotateZ(360deg); } }
+      @keyframes textGlow { 0% { text-shadow: 0 0 10px rgba(139, 92, 246, 0.2); } 100% { text-shadow: 0 0 30px rgba(139, 92, 246, 0.8), 0 0 10px #ffffff; } }
+    </style>
   </head>
   <body>
+    <div id="initial-loader">
+      <div class="loader-container-3d">
+        <div class="ambient-glow"></div>
+        <div class="center-diamond"></div>
+        <div class="orbit-ring orbit-ring-1"></div>
+        <div class="orbit-ring orbit-ring-2"></div>
+        <div class="orbit-ring orbit-ring-3"></div>
+      </div>
+      <div class="preload-text-wrapper">
+        <p class="preload-text">EDSTREAM</p>
+        <p class="preload-subtext">Learn Without Boundaries</p>
+      </div>
+    </div>
     <div id="root"></div>
+    <script>
+      const startTime = Date.now();
+      window.addEventListener('load', () => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, 1500 - elapsed);
+        
+        setTimeout(() => {
+          const loader = document.getElementById('initial-loader');
+          if (loader) {
+            loader.style.opacity = '0';
+            loader.style.visibility = 'hidden';
+            loader.style.transition = 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.6s';
+            setTimeout(() => loader.remove(), 600);
+          }
+        }, remaining);
+      });
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

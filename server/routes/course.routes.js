@@ -9,7 +9,6 @@ import {
   unenrollCourse,
   getMyCourses,
   getEnrolledCourses,
-  createCourseReview,
   getCourseAnalytics,
 } from '../controllers/course.controller.js';
 import auth from '../middleware/auth.middleware.js';
@@ -29,7 +28,6 @@ router.post('/', auth, authorize('instructor'), createCourse);
 router.get('/:id', getCourseById);
 router.put('/:id', auth, authorize('instructor'), updateCourse);
 router.delete('/:id', auth, authorize('instructor', 'admin'), deleteCourse);
-router.post('/:id/reviews', auth, createCourseReview);
 router.get('/:id/analytics', auth, authorize('instructor', 'admin'), getCourseAnalytics);
 
 // Enrollment

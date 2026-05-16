@@ -3,6 +3,7 @@ import User from '../models/User.js';
 import QuizSubmission from '../models/QuizSubmission.js';
 import AssignmentSubmission from '../models/AssignmentSubmission.js';
 import ForumThread from '../models/ForumThread.js';
+import Review from '../models/Review.js';
 
 // Helper to calculate total duration in minutes
 const computeTotalDuration = (modules) => {
@@ -101,14 +102,17 @@ export const getCourseById = async (req, res) => {
   try {
     const course = await Course.findById(req.params.id)
       .populate('instructor', 'name avatar bio')
-      .populate('enrolledStudents', 'name avatar')
-      .populate('reviews.user', 'name avatar');
+      .populate('enrolledStudents', 'name avatar');
 
     if (!course) {
       return res.status(404).json({ message: 'Course not found.' });
     }
 
-    res.json({ course });
+    const reviews = await Review.find({ course: req.params.id })
+      .populate('user', 'name avatar')
+      .sort({ createdAt: -1 });
+
+    res.json({ course: { ...course.toObject(), reviews } });
   } catch (error) {
     console.error('GetCourseById error:', error);
     res.status(500).json({ message: 'Server error.' });
@@ -302,62 +306,7 @@ export const getEnrolledCourses = async (req, res) => {
   }
 };
 
-// @desc    Create new review
-// @route   POST /api/courses/:id/reviews
-// @access  Private (Learners/Other Instructors)
-export const createCourseReview = async (req, res) => {
-  try {
-    const { rating, comment } = req.body;
-    const course = await Course.findById(req.params.id);
 
-    if (!course) {
-      return res.status(404).json({ message: 'Course not found' });
-    }
-
-    if (course.instructor.toString() === req.user._id.toString()) {
-      return res.status(400).json({ message: 'You cannot review your own course.' });
-    }
-
-    const isEnrolled = course.enrolledStudents.some(
-      (studentId) => studentId.toString() === req.user._id.toString()
-    );
-
-    if (!isEnrolled) {
-      return res.status(403).json({ message: 'You must be enrolled to leave a review.' });
-    }
-
-    if (!course.reviews) course.reviews = [];
-
-    const alreadyReviewed = course.reviews.find(
-      (r) => r.user.toString() === req.user._id.toString()
-    );
-
-    if (alreadyReviewed) {
-      return res.status(400).json({ message: 'Course already reviewed by you' });
-    }
-
-    const review = {
-      user: req.user._id,
-      rating: Number(rating),
-      comment,
-    };
-
-    course.reviews.push(review);
-    course.totalReviews = course.reviews.length;
-    course.averageRating =
-      course.reviews.reduce((acc, item) => item.rating + acc, 0) / course.reviews.length;
-
-    await course.save();
-    
-    // Repopulate reviews to return user names
-    await course.populate('reviews.user', 'name avatar');
-
-    res.status(201).json({ message: 'Review added successfully', reviews: course.reviews });
-  } catch (error) {
-    console.error('CreateCourseReview error:', error);
-    res.status(500).json({ message: 'Server error.' });
-  }
-};
 
 // @desc    Get course analytics
 // @route   GET /api/courses/:id/analytics

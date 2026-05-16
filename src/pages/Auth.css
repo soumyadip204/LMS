@@ -51,12 +51,12 @@
 
 .auth-card {
   width: 100%;
-  max-width: 440px;
+  max-width: 580px;
   background: var(--bg-glass);
   backdrop-filter: blur(20px);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
-  padding: 40px;
+  padding: 32px 40px;
   position: relative;
   z-index: 1;
   box-shadow: var(--shadow-lg);
@@ -64,7 +64,7 @@
 
 .auth-header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
 .auth-logo {
@@ -173,12 +173,41 @@
   color: var(--accent-secondary);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
+  .auth-page {
+    padding: 20px 16px;
+  }
+
   .auth-card {
-    padding: 28px 20px;
+    padding: 24px 20px;
+    max-width: 100%;
   }
 
   .auth-title {
     font-size: 1.5rem;
+  }
+
+  .auth-role-options {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-role-btn {
+    flex-direction: row;
+    padding: 12px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 20px 16px;
+    border-radius: var(--radius-lg);
+  }
+
+  .auth-title {
+    font-size: 1.3rem;
+  }
+
+  .auth-subtitle {
+    font-size: 0.85rem;
   }
 }

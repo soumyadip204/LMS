@@ -104,7 +104,7 @@ const InstructorDashboard = () => {
           ) : myCourses?.length > 0 ? (
             <div className="instructor-courses-list">
               {myCourses.map(course => (
-                <div key={course._id} className="instructor-course-card card">
+                <div key={course._id} className="instructor-course-card card" onClick={() => navigate(`/course/${course._id}`)} style={{ cursor: 'pointer' }}>
                   <div className="icc-thumb">
                     {course.thumbnail ? (
                       <img src={course.thumbnail} alt="" />
@@ -114,7 +114,7 @@ const InstructorDashboard = () => {
                   </div>
                   <div className="icc-info">
                     <div className="icc-top">
-                      <Link to={`/course/${course._id}`} className="icc-title">{course.title}</Link>
+                      <span className="icc-title">{course.title}</span>
                       <span className={`badge ${course.isPublished ? 'badge-success' : 'badge-warning'}`}>
                         {course.isPublished ? 'Published' : 'Draft'}
                       </span>
@@ -125,7 +125,7 @@ const InstructorDashboard = () => {
                       <span><FiBookOpen size={14} /> {course.modules?.length || 0} modules</span>
                     </div>
                   </div>
-                  <div className="icc-actions">
+                  <div className="icc-actions" onClick={(e) => e.stopPropagation()}>
                     <button className="icc-action-btn" title={course.isPublished ? 'Unpublish' : 'Publish'} onClick={() => handleTogglePublish(course)}>
                       {course.isPublished ? <FiEyeOff size={16} /> : <FiEye size={16} />}
                     </button>

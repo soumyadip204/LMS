@@ -13,6 +13,7 @@ import reviewRoutes from './routes/review.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 import submissionRoutes from './routes/submission.routes.js';
 import forumRoutes from './routes/forum.routes.js';
+import contactRoutes from './routes/contact.routes.js';
 
 // Load env vars
 dotenv.config();
@@ -61,6 +62,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/submissions', submissionRoutes);
 app.use('/api/forums', forumRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

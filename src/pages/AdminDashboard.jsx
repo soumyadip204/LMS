@@ -191,7 +191,7 @@ const AdminDashboard = () => {
                           <p className="admin-top-name">{u.name}</p>
                           <span className="admin-top-meta">{u.email}</span>
                         </div>
-                        <span className={`badge badge-${u.role === 'instructor' ? 'info' : 'primary'}`}>{u.role}</span>
+                        <span className={`badge badge-${u.role === 'instructor' ? 'info' : u.role === 'admin' ? 'warning' : 'primary'}`}>{u.role}</span>
                       </div>
                     ))}
                   </div>
@@ -202,17 +202,17 @@ const AdminDashboard = () => {
                 <h3 className="admin-panel-title">User Breakdown</h3>
                 <div className="admin-breakdown">
                   <div className="admin-breakdown-item">
-                    <span className="admin-bd-dot" style={{background: 'var(--accent-primary)'}} />
+                    <span className="admin-bd-dot" style={{ background: 'var(--accent-primary)' }} />
                     <span>Learners</span>
                     <span className="admin-bd-count">{stats?.stats?.totalLearners || 0}</span>
                   </div>
                   <div className="admin-breakdown-item">
-                    <span className="admin-bd-dot" style={{background: 'var(--accent-secondary)'}} />
+                    <span className="admin-bd-dot" style={{ background: 'var(--accent-secondary)' }} />
                     <span>Instructors</span>
                     <span className="admin-bd-count">{stats?.stats?.totalInstructors || 0}</span>
                   </div>
                   <div className="admin-breakdown-item">
-                    <span className="admin-bd-dot" style={{background: 'var(--success)'}} />
+                    <span className="admin-bd-dot" style={{ background: 'var(--success)' }} />
                     <span>Published Courses</span>
                     <span className="admin-bd-count">{stats?.stats?.publishedCourses || 0}</span>
                   </div>

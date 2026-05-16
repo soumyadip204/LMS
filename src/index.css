@@ -7,33 +7,33 @@
 
 /* ---- CSS Variables ---- */
 :root {
-  /* Colors - Light Theme */
-  --bg-primary: #fcf8f4; /* Very light coffee cream */
-  --bg-secondary: #f6eedf; /* Slightly deeper cream */
-  --bg-tertiary: #f0e6d5; /* Used for panels/sidebars */
-  --bg-card: #ffffff; /* Crisp white for cards */
-  --bg-card-hover: #fdfaf7;
-  --bg-glass: rgba(252, 248, 244, 0.85);
-  --bg-input: #ffffff;
+  /* Colors - Dark Violet Theme */
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #121212;
+  --bg-tertiary: #1a1a1a;
+  --bg-card: #141414;
+  --bg-card-hover: #1c1c1c;
+  --bg-glass: rgba(10, 10, 10, 0.85);
+  --bg-input: #1f1f1f;
 
-  --text-primary: #120e0c; /* Deep warm black */
-  --text-secondary: #3a2e28; /* Dark warm grey/brown */
-  --text-muted: #7a6557; /* Muted taupe */
-  --text-accent: #e65800; /* Darker orange for text readability */
+  --text-primary: #ffffff;
+  --text-secondary: #a3a3a3;
+  --text-muted: #737373;
+  --text-accent: #c4b5fd;
 
-  --accent-primary: #ff6200; /* Vibrant Orange */
-  --accent-secondary: #d48a4c; /* Caramel/Dark Cream */
-  --accent-gradient: linear-gradient(135deg, #ff6200, #d48a4c);
-  --accent-gradient-hover: linear-gradient(135deg, #ff7c29, #e6a066);
-  --accent-glow: rgba(255, 98, 0, 0.2);
+  --accent-primary: #8b5cf6;
+  --accent-secondary: #c4b5fd;
+  --accent-gradient: linear-gradient(135deg, #8b5cf6, #c4b5fd);
+  --accent-gradient-hover: linear-gradient(135deg, #7c3aed, #a78bfa);
+  --accent-glow: rgba(139, 92, 246, 0.25);
 
-  --success: #059669;
-  --warning: #d97706;
-  --error: #dc2626;
-  --info: #2563eb;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
 
-  --border-color: rgba(18, 14, 12, 0.1);
-  --border-color-hover: rgba(18, 14, 12, 0.2);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --border-color-hover: rgba(255, 255, 255, 0.2);
 
   /* Typography */
   --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -508,6 +508,10 @@ img {
 
 /* ---- Responsive ---- */
 @media (max-width: 768px) {
+  :root {
+    --navbar-height: 60px;
+  }
+
   .container {
     padding: 0 16px;
   }
@@ -520,14 +524,66 @@ img {
     font-size: 1.7rem;
   }
 
+  .section-subtitle {
+    font-size: 0.92rem;
+    margin-bottom: 28px;
+  }
+
+  .btn {
+    padding: 10px 20px;
+    font-size: 0.88rem;
+  }
+
   .btn-lg {
     padding: 14px 28px;
     font-size: 0.95rem;
   }
+
+  .form-input,
+  .form-select,
+  .form-textarea {
+    padding: 10px 14px;
+    font-size: 0.9rem;
+  }
+
+  .card:hover {
+    transform: none;
+  }
 }
 
 @media (max-width: 480px) {
+  .container {
+    padding: 0 12px;
+  }
+
+  .section {
+    padding: 36px 0;
+  }
+
   .section-title {
     font-size: 1.4rem;
+  }
+
+  .section-subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+  }
+
+  .btn {
+    padding: 10px 16px;
+    font-size: 0.85rem;
+  }
+
+  .form-group {
+    margin-bottom: 14px;
+  }
+
+  .form-label {
+    font-size: 0.82rem;
+  }
+
+  .badge {
+    font-size: 0.68rem;
+    padding: 3px 8px;
   }
 }

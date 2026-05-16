@@ -9,6 +9,7 @@ import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import RoleRoute from './components/common/RoleRoute';
+import AnimatedRoutes from './components/common/AnimatedRoutes';
 
 import HomePage from './pages/HomePage';
 import BrowsePage from './pages/BrowsePage';
@@ -23,6 +24,7 @@ import ProfilePage from './pages/ProfilePage';
 import HelpCenterPage from './pages/HelpCenterPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import ContactPage from './pages/ContactPage';
 
 function App() {
   return (
@@ -32,7 +34,7 @@ function App() {
           <div className="app">
             <Navbar />
             <main className="main-content">
-              <Routes>
+              <AnimatedRoutes>
                 {/* Public Routes */}
                 <Route path="/" element={<HomePage />} />
                 <Route path="/browse" element={<BrowsePage />} />
@@ -42,6 +44,7 @@ function App() {
                 <Route path="/help" element={<HelpCenterPage />} />
                 <Route path="/terms" element={<TermsOfServicePage />} />
                 <Route path="/privacy" element={<PrivacyPolicyPage />} />
+                <Route path="/contact" element={<ContactPage />} />
 
                 {/* Learner Routes */}
                 <Route
@@ -98,7 +101,7 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-              </Routes>
+              </AnimatedRoutes>
             </main>
             <Footer />
             <ToastContainer

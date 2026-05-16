@@ -49,6 +49,34 @@ const userSchema = new mongoose.Schema(
         ref: 'Course',
       },
     ],
+    // Instructor-only
+    experience: {
+      type: String,
+      default: '',
+      maxlength: [200, 'Experience cannot exceed 200 characters'],
+    },
+    // Learner-only
+    domainInterests: {
+      type: [String],
+      default: [],
+    },
+    // Learner + Instructor
+    educationalQualifications: [{
+      degree: { type: String, default: '' },
+      institute: { type: String, default: '' },
+      year: { type: String, default: '', maxlength: [4, 'Year cannot exceed 4 digits'] },
+    }],
+    // Learner + Instructor
+    skills: {
+      type: [String],
+      default: [],
+    },
+    // Learner-only
+    occupation: {
+      type: String,
+      enum: ['', 'student', 'working_professional'],
+      default: '',
+    },
   },
   {
     timestamps: true,
